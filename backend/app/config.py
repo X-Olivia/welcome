@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     openai_base_url: str = ""
     assemblyai_api_key: str = ""
     assemblyai_base_url: str = "https://api.assemblyai.com/v2"
-    assemblyai_poll_interval_ms: int = 800
-    assemblyai_poll_attempts: int = 30
+    assemblyai_poll_interval_ms: int = 1000
+    assemblyai_poll_attempts: int = 60
     cartesia_api_key: str = ""
     cartesia_base_url: str = "https://api.cartesia.ai"
     cartesia_version: str = "2025-04-16"

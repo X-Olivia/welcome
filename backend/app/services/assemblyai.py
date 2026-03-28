@@ -22,7 +22,7 @@ async def transcribe_audio_bytes(audio_bytes: bytes, *, language_code: str | Non
     if not audio_bytes:
         raise RuntimeError("Audio content is empty.")
 
-    timeout = httpx.Timeout(30.0, connect=10.0)
+    timeout = httpx.Timeout(60.0, connect=10.0)
     base_url = settings.assemblyai_base_url.rstrip("/")
     headers = _headers()
 
@@ -56,16 +56,28 @@ async def transcribe_audio_bytes(audio_bytes: bytes, *, language_code: str | Non
         if not transcript_id:
             raise RuntimeError("AssemblyAI did not return a transcription job id.")
 
-        for _ in range(settings.assemblyai_poll_attempts):
+        last_status = "queued"
+        for attempt in range(settings.assemblyai_poll_attempts):
             await asyncio.sleep(settings.assemblyai_poll_interval_ms / 1000)
             poll_resp = await client.get(f"{base_url}/transcript/{transcript_id}", headers=headers)
             poll_resp.raise_for_status()
             data = poll_resp.json()
             status = data.get("status")
+            last_status = str(status or "unknown")
 
             if status == "completed":
                 return str(data.get("text") or "").strip()
             if status == "error":
                 raise RuntimeError(str(data.get("error") or "AssemblyAI transcription failed."))
+            if attempt in (0, 4, 14, 29, 44, settings.assemblyai_poll_attempts - 1):
+                logger.info(
+                    "AssemblyAI transcript %s still pending: status=%s attempt=%s/%s",
+                    transcript_id,
+                    last_status,
+                    attempt + 1,
+                    settings.assemblyai_poll_attempts,
+                )
 
-        raise RuntimeError("AssemblyAI transcription timed out. Please try again.")
+        raise RuntimeError(
+            f"AssemblyAI transcription timed out after waiting {settings.assemblyai_poll_attempts * settings.assemblyai_poll_interval_ms / 1000:.0f} seconds. Last status: {last_status}."
+        )

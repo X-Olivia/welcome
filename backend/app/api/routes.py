@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
 
+from app.config import settings
 from app.models.schemas import (
     GuideRequest,
     GuideResponse,
@@ -92,3 +93,17 @@ async def post_voice_speak(body: SpeechRequest) -> Response:
 @router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.get("/debug/config")
+def debug_config() -> dict[str, object]:
+    return {
+        "openai_api_key_configured": bool(settings.openai_api_key),
+        "assemblyai_api_key_configured": bool(settings.assemblyai_api_key),
+        "cartesia_api_key_configured": bool(settings.cartesia_api_key),
+        "openai_base_url": settings.openai_base_url,
+        "assemblyai_base_url": settings.assemblyai_base_url,
+        "cartesia_base_url": settings.cartesia_base_url,
+        "cartesia_language": settings.cartesia_language,
+        "public_base_url": settings.public_base_url,
+    }

@@ -96,9 +96,7 @@ export function useVoiceGuide(options: UseVoiceGuideOptions) {
 
     let transcriptText = "";
     try {
-      const transcript = await postVoiceTranscribe(capture.blob, {
-        language: inferLanguageHint(),
-      });
+      const transcript = await transcribeWithRetry(capture.blob, inferLanguageHint());
       transcriptText = transcript.text.trim();
     } catch (error) {
       await handleFallback("transcribe_failed", sessionId, error);
@@ -206,4 +204,17 @@ function inferLanguageHint(): string | undefined {
   if (locale.startsWith("zh")) return "zh";
   if (locale.startsWith("en")) return "en";
   return undefined;
+}
+
+async function transcribeWithRetry(audio: Blob, language?: string) {
+  try {
+    return await postVoiceTranscribe(audio, { language });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/timed out/i.test(message)) {
+      throw error;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 1200));
+    return await postVoiceTranscribe(audio, { language });
+  }
 }
