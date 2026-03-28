@@ -195,10 +195,12 @@ def build_place_card(place_id: str) -> PlaceCard | None:
     entry = place_catalog().get(place_id)
     if not entry:
         return None
+    english_name = str(entry.get("name_en") or entry.get("name_zh") or place_id)
+    english_blurb = str(entry.get("blurb_en") or f"Explore {english_name} as part of this campus route.")
     return PlaceCard(
         id=place_id,
-        name_zh=str(entry["name_zh"]),
-        blurb=str(entry["blurb"]),
+        name_zh=english_name,
+        blurb=english_blurb,
     )
 
 
@@ -234,8 +236,11 @@ def theme_intro(theme_id: str) -> str | None:
     entry = theme_catalog().get(theme_id)
     if not entry:
         return None
-    intro = entry.get("intro_zh")
-    return str(intro) if intro else None
+    intro = entry.get("intro_en")
+    if intro:
+        return str(intro)
+    theme_name = str(entry.get("name_en") or entry.get("name_zh") or theme_id).strip()
+    return f"This route is designed around {theme_name.lower()} and gives you a clear way to explore the campus."
 
 
 def default_recommendation_theme() -> str:

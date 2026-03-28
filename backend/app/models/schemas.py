@@ -12,7 +12,7 @@ class Intent(str, Enum):
 
 
 class ArmAction(str, Enum):
-    """与 SO-ARM101 示教/关节姿态对应的逻辑动作名；硬件层再映射到具体角度。"""
+    """Logical arm action names that the hardware layer can map to actual poses."""
 
     point_left = "point_left"
     point_right = "point_right"
@@ -44,6 +44,12 @@ class RouteRequest(BaseModel):
 class MultiRouteRequest(BaseModel):
     waypoints: list[str] = Field(..., min_length=1, max_length=12)
     mode: Intent = Intent.tour
+
+
+class SpeechRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=600)
+    language: str = Field(default="en", min_length=2, max_length=10)
+    speed: float | None = Field(default=None, ge=0.5, le=2.0)
 
 
 class PlaceCard(BaseModel):
@@ -80,3 +86,8 @@ class RoutePlanResponse(BaseModel):
     path: list[MapPoint] = Field(default_factory=list)
     route_distance_px: float | None = None
     share_url: str | None = None
+
+
+class VoiceTranscriptResponse(BaseModel):
+    text: str
+    duration_ms: int | None = None

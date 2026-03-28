@@ -2,12 +2,13 @@ import { FormEvent, useMemo, useState } from "react";
 import { GuideMap } from "./GuideMap";
 import { type GuideResponse, postGuide } from "./api";
 import { getPoiByPlaceId, getRouteMetrics, polylineDistance } from "./campusMap";
+import { useVoiceGuide } from "./voice/useVoiceGuide";
 
 const starterPrompts = [
-  "图书馆怎么走？",
-  "我想看看 AI 和机器人相关区域",
-  "带家长快速逛一下理工区域",
-  "想了解校园生活和吃饭的地方",
+  "How do I get to the library?",
+  "I want to explore AI and robotics.",
+  "Show my family the engineering area.",
+  "I want to see student life and food spots.",
 ];
 
 export function App() {
@@ -23,9 +24,9 @@ export function App() {
   );
   const metrics = useMemo(() => getRouteMetrics(routeDistance), [routeDistance]);
 
-  async function runQuery(message: string) {
+  async function runQuery(message: string): Promise<GuideResponse> {
     const text = message.trim();
-    if (!text) return;
+    if (!text) throw new Error("Please enter a route request.");
 
     setLoading(true);
     setError(null);
@@ -34,8 +35,11 @@ export function App() {
       const data = await postGuide(text);
       setResult(data);
       setInput(text);
+      return data;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const messageText = err instanceof Error ? err.message : String(err);
+      setError(messageText);
+      throw err instanceof Error ? err : new Error(messageText);
     } finally {
       setLoading(false);
     }
@@ -43,8 +47,20 @@ export function App() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await runQuery(input);
+    try {
+      await runQuery(input);
+    } catch {
+      // UI state is already updated inside runQuery.
+    }
   }
+
+  const voice = useVoiceGuide({
+    onGuideRequest: runQuery,
+    onTranscript: (message) => {
+      setInput(message);
+      setError(null);
+    },
+  });
 
   const topStop = result?.places[0];
   const topStopMeta = topStop ? getPoiByPlaceId(topStop.id) : null;
@@ -96,7 +112,7 @@ export function App() {
               value={input}
               onChange={(event) => setInput(event.target.value)}
               rows={4}
-              placeholder="For example: 图书馆怎么走？ / 我想看 AI 和机器人 / 带家长逛一下校园生活"
+              placeholder="For example: How do I get to the library? / I want to explore AI and robotics / Show my family student life"
               disabled={loading}
             />
             <div className="prompt-form__actions">
@@ -109,6 +125,38 @@ export function App() {
             </div>
           </form>
 
+          <section className="voice-panel">
+            <div className="voice-panel__header">
+              <div>
+                <p className="panel__eyebrow">Voice Dialogue</p>
+                <h3>Speak to the guide</h3>
+              </div>
+              <span className={`voice-phase voice-phase--${voice.phase}`}>
+                {voicePhaseLabel(voice.phase)}
+              </span>
+            </div>
+
+            <div className="voice-panel__body">
+              <button
+                className={`voice-trigger ${voice.isActive ? "voice-trigger--active" : ""}`}
+                type="button"
+                onClick={() => void voice.startOrStop()}
+                disabled={loading && !voice.isActive}
+              >
+                <span className="voice-trigger__dot" />
+                <span>{voice.isActive ? "Stop Voice Mode" : "Start Voice Dialogue"}</span>
+              </button>
+
+              <div className="voice-status-card">
+                <p className="voice-status-card__title">{voice.statusText}</p>
+                {voice.lastTranscript && (
+                  <p className="voice-status-card__transcript">“{voice.lastTranscript}”</p>
+                )}
+                {voice.errorText && <p className="voice-status-card__error">{voice.errorText}</p>}
+              </div>
+            </div>
+          </section>
+
           <div className="suggestion-row" aria-label="Suggested prompts">
             {starterPrompts.map((prompt) => (
               <button
@@ -117,7 +165,7 @@ export function App() {
                 type="button"
                 onClick={() => {
                   setInput(prompt);
-                  void runQuery(prompt);
+                  void runQuery(prompt).catch(() => undefined);
                 }}
                 disabled={loading}
               >
@@ -254,7 +302,7 @@ export function App() {
                           type="button"
                           onClick={() => {
                             setInput(prompt);
-                            void runQuery(prompt);
+                            void runQuery(prompt).catch(() => undefined);
                           }}
                         >
                           {prompt}
@@ -377,4 +425,14 @@ function intentLabel(intent: GuideResponse["intent"]): string {
   if (intent === "tour") return "Theme Route";
   if (intent === "recommend_tour") return "Recommended Tour";
   return "Clarification";
+}
+
+function voicePhaseLabel(phase: ReturnType<typeof useVoiceGuide>["phase"]): string {
+  if (phase === "greeting") return "Greeting";
+  if (phase === "listening") return "Listening";
+  if (phase === "transcribing") return "Transcribing";
+  if (phase === "thinking") return "Thinking";
+  if (phase === "speaking_result") return "Speaking";
+  if (phase === "error") return "Try Again";
+  return "Idle";
 }

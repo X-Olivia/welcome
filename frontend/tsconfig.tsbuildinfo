@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/guidemap.tsx","./src/mobilepage.tsx","./src/api.ts","./src/campusmap.ts","./src/main.tsx","./src/vite-env.d.ts","./src/voice/audioplayer.ts","./src/voice/audiorecorder.ts","./src/voice/phrasemanager.ts","./src/voice/phrases.ts","./src/voice/types.ts","./src/voice/usevoiceguide.ts"],"version":"5.6.3"}

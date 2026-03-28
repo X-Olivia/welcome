@@ -46,8 +46,39 @@ export interface RoutePlanResponse {
   share_url: string | null;
 }
 
+export interface VoiceTranscriptResponse {
+  text: string;
+  duration_ms?: number | null;
+}
+
 function apiBase(): string {
   return import.meta.env.VITE_API_BASE?.replace(/\/$/, "") ?? "";
+}
+
+async function parseApiError(response: Response): Promise<string> {
+  const text = await response.text();
+  let messageText = text || response.statusText;
+
+  try {
+    const json = JSON.parse(text) as { detail?: unknown };
+    if (typeof json.detail === "string") messageText = json.detail;
+    else if (Array.isArray(json.detail)) {
+      messageText = json.detail
+        .map((item: { msg?: string }) => item.msg ?? String(item))
+        .join("; ");
+    }
+  } catch {
+    // Preserve text body when it is not JSON.
+  }
+
+  if (response.status >= 500) {
+    const shortMessage =
+      /internal server error/i.test(messageText) || messageText.length < 5
+        ? "server processing failed"
+        : messageText.slice(0, 120);
+    messageText = `The service is temporarily unavailable (${shortMessage}). Check whether the backend is running and the dependencies are installed.`;
+  }
+  return messageText;
 }
 
 export async function postGuide(message: string): Promise<GuideResponse> {
@@ -57,31 +88,7 @@ export async function postGuide(message: string): Promise<GuideResponse> {
     body: JSON.stringify({ message }),
   });
 
-  if (!response.ok) {
-    const text = await response.text();
-    let messageText = text || response.statusText;
-
-    try {
-      const json = JSON.parse(text) as { detail?: unknown };
-      if (typeof json.detail === "string") messageText = json.detail;
-      else if (Array.isArray(json.detail)) {
-        messageText = json.detail
-          .map((item: { msg?: string }) => item.msg ?? String(item))
-          .join("；");
-      }
-    } catch {
-      // Preserve text body when it is not JSON.
-    }
-
-    if (response.status >= 500) {
-      const shortMessage =
-        /internal server error/i.test(messageText) || messageText.length < 5
-          ? "后端处理出错"
-          : messageText.slice(0, 120);
-      messageText = `服务暂时不可用（${shortMessage}）。可检查后端是否已启动、依赖是否已安装。`;
-    }
-    throw new Error(messageText);
-  }
+  if (!response.ok) throw new Error(await parseApiError(response));
 
   return (await response.json()) as GuideResponse;
 }
@@ -113,4 +120,37 @@ export async function postMultiRoute(
   });
   if (!response.ok) throw new Error(await response.text());
   return (await response.json()) as RoutePlanResponse;
+}
+
+export async function postVoiceTranscribe(
+  audio: Blob,
+  options?: { language?: string },
+): Promise<VoiceTranscriptResponse> {
+  const formData = new FormData();
+  formData.append("audio", audio, "voice-input.webm");
+  if (options?.language) formData.append("language", options.language);
+
+  const response = await fetch(`${apiBase()}/api/voice/transcribe`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) throw new Error(await parseApiError(response));
+  return (await response.json()) as VoiceTranscriptResponse;
+}
+
+export async function fetchSpeechAudio(
+  text: string,
+  options?: { language?: string; speed?: number },
+): Promise<Blob> {
+  const response = await fetch(`${apiBase()}/api/voice/speak`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      text,
+      language: options?.language ?? "en",
+      speed: options?.speed,
+    }),
+  });
+  if (!response.ok) throw new Error(await parseApiError(response));
+  return await response.blob();
 }

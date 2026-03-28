@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import Literal
 
 from openai import OpenAI
@@ -33,37 +34,38 @@ class _LLMGuideParse(BaseModel):
     clarification_question: str | None = None
 
 
-_SYSTEM = """你是校园开放日 AI 导览装置的自然语言理解模块。
-你的任务不是生成长篇讲解，而是把用户输入解析成稳定、可执行的结构化导览计划。
+_SYSTEM = """You are the natural-language understanding module for an open-day campus AI guide.
+Your job is not to write a long explanation. Your job is to turn the user's request into a stable,
+executable, structured guide plan.
 
-你必须在以下意图中四选一：
-- route：用户明确要去某一个地点
-- tour：用户有主题/区域/多地点需求，需要规划一条经过多个地点的有序路线
-- recommend_tour：用户表达模糊，但明显希望系统主动推荐一条可执行路线
-- clarification：当前无法可靠映射到地点、主题或推荐路线，需要追问
+You must choose exactly one intent:
+- route: the user clearly wants directions to one destination
+- tour: the user wants a themed, area-based, or multi-stop campus route
+- recommend_tour: the user is vague but clearly wants the system to recommend a route
+- clarification: the request cannot be mapped reliably and needs a follow-up question
 
-输出规则：
-1. ordered_waypoints 是最重要字段。只要 intent 不是 clarification，就尽量给出一条可执行的有序 waypoint 序列。
-2. 如果用户只是问单地点，ordered_waypoints 通常只包含一个地点。
-3. 如果用户在问主题、区域、工科、AI、机器人、校园生活、第一次来怎么逛等，应该优先输出 tour 或 recommend_tour。
-4. 如果确实无法可靠判断，才输出 clarification，并给出 clarification_question。
-5. places / ordered_waypoints / themes 优先使用知识库中的 id；如果你不确定 id，也可以先填你理解到的名称，后端会再标准化。
-6. reply_text 只写 1-2 句自然说明，适合开放日导览场景。
-7. 不要输出 markdown，不要解释推理过程。"""
+Output rules:
+1. ordered_waypoints is the most important field. If the intent is not clarification, provide an executable ordered waypoint sequence whenever possible.
+2. For a single destination request, ordered_waypoints usually contains one place.
+3. For theme, area, engineering, AI, robotics, student life, or first-visit requests, prefer tour or recommend_tour.
+4. Use clarification only when you truly cannot map the request reliably.
+5. Prefer knowledge-base ids in places, ordered_waypoints, and themes. If you are unsure, you may return a place name and the backend will normalize it.
+6. reply_text must be 1-2 natural English sentences for an open-day guide. Do not include Chinese words, translations, or bilingual parentheses.
+7. Do not output markdown and do not explain your reasoning."""
 
 
 def run_nlu(user_message: str) -> NLUResult:
     """Parse user natural language into executable route/tour metadata."""
 
     if not settings.openai_api_key:
-        logger.warning("OPENAI_API_KEY 未设置，使用启发式 fallback NLU")
+        logger.warning("OPENAI_API_KEY is not configured; using fallback NLU")
         return _fallback_nlu(user_message)
 
     try:
         raw = _run_llm_parse(user_message)
         return _normalize_llm_output(raw, user_message)
     except Exception as e:
-        logger.warning("OpenAI NLU 不可用，回退到启发式：%s", e)
+        logger.warning("OpenAI NLU unavailable; falling back to heuristics: %s", e)
         return _fallback_nlu(user_message)
 
 
@@ -76,8 +78,8 @@ def _run_llm_parse(user_message: str) -> _LLMGuideParse:
     client = OpenAI(**client_kwargs)
     knowledge = list_place_summaries_for_prompt()
     user_prompt = (
-        f"用户输入：{user_message}\n\n"
-        "请严格输出 JSON，对应字段如下：\n"
+        f"User input: {user_message}\n\n"
+        "Return strict JSON with the following fields:\n"
         '{'
         '"intent":"route|tour|recommend_tour|clarification",'
         '"places":["..."],'
@@ -92,7 +94,7 @@ def _run_llm_parse(user_message: str) -> _LLMGuideParse:
     completion = client.chat.completions.create(
         model=settings.openai_model,
         messages=[
-            {"role": "system", "content": _SYSTEM + "\n\n知识库：\n" + knowledge},
+            {"role": "system", "content": _SYSTEM + "\n\nKnowledge base:\n" + knowledge},
             {"role": "user", "content": user_prompt},
         ],
         response_format={"type": "json_object"},
@@ -164,7 +166,7 @@ def _normalize_llm_output(raw: _LLMGuideParse, user_message: str) -> NLUResult:
     unresolved = unresolved_places + unresolved_waypoints
     if unresolved and not ordered_waypoints:
         return _clarification_result(
-            question=f"我还不能确定「{unresolved[0]}」对应校园里的哪个地点。可以换一个更具体的名称吗？",
+            question=f"I cannot match '{unresolved[0]}' to a campus location yet. Could you use a more specific name?",
             user_message=user_message,
             confidence=raw.confidence,
             debug={
@@ -176,7 +178,10 @@ def _normalize_llm_output(raw: _LLMGuideParse, user_message: str) -> NLUResult:
         )
 
     if raw.needs_clarification or intent == Intent.clarification:
-        question = raw.clarification_question or "可以说得更具体一点吗？例如你想去哪个地点，或者想了解哪一类路线。"
+        question = _sanitize_english_text(
+            raw.clarification_question
+            or "Could you be more specific? For example, tell me a destination or the kind of route you want."
+        )
         return _clarification_result(
             question=question,
             user_message=user_message,
@@ -191,13 +196,13 @@ def _normalize_llm_output(raw: _LLMGuideParse, user_message: str) -> NLUResult:
 
     if not ordered_waypoints:
         return _clarification_result(
-            question="我可以帮你指路、规划主题导览或推荐路线。可以说一个地点、一个兴趣主题，或让我直接推荐一条路线。",
+            question="I can guide you to a place, create a themed tour, or recommend a route. Try a destination, an interest, or ask me to recommend one.",
             user_message=user_message,
             confidence=raw.confidence,
             debug={"raw": raw.model_dump()},
         )
 
-    reply_text = raw.reply_text.strip() or _default_reply(intent, ordered_waypoints)
+    reply_text = _sanitize_english_text(raw.reply_text) or _default_reply(intent, ordered_waypoints)
     return NLUResult(
         intent=intent,
         places=places,
@@ -218,10 +223,20 @@ def _normalize_llm_output(raw: _LLMGuideParse, user_message: str) -> NLUResult:
 
 def _default_reply(intent: Intent, ordered_waypoints: list[str]) -> str:
     if intent == Intent.route and ordered_waypoints:
-        return f"我已经为你识别到目标地点，接下来会规划前往 {ordered_waypoints[0]} 的路线。"
+        return f"I found your destination and will now plan the route to {ordered_waypoints[0]}."
     if intent == Intent.tour:
-        return "我会根据你的兴趣生成一条多点导览路线，并按顺序带你经过相关地点。"
-    return "我会为你推荐一条适合开放日现场体验的校园路线。"
+        return "I will create a multi-stop route based on your interests and guide you through the relevant places in order."
+    return "I will recommend a route that works well for the campus open day."
+
+
+def _sanitize_english_text(text: str | None) -> str:
+    if not text:
+        return ""
+    cleaned = re.sub(r"[\u4e00-\u9fff]+", "", text)
+    cleaned = re.sub(r"[（(]\s*[)）]", "", cleaned)
+    cleaned = re.sub(r"\s{2,}", " ", cleaned)
+    cleaned = re.sub(r"\s+([,.;:!?])", r"\1", cleaned)
+    return cleaned.strip(" \n\t-")
 
 
 def _clarification_result(
@@ -254,7 +269,9 @@ def _fallback_nlu(message: str) -> NLUResult:
     theme_ids = extract_theme_mentions(text)
     lowered = text.lower()
 
-    if any(token in text for token in ("推荐", "随便看看", "第一次来", "怎么逛", "值得看")) or "recommend" in lowered:
+    if any(token in text for token in ("推荐", "随便看看", "第一次来", "怎么逛", "值得看")) or any(
+        token in lowered for token in ("recommend", "first visit", "what should i see", "worth seeing")
+    ):
         theme_ids = theme_ids or [default_recommendation_theme()]
         waypoints = theme_waypoints_for_ids(theme_ids) or default_recommendation_waypoints()
         return NLUResult(
@@ -262,7 +279,7 @@ def _fallback_nlu(message: str) -> NLUResult:
             places=[],
             ordered_waypoints=waypoints,
             themes=theme_ids,
-            reply_text="我先为你推荐一条适合开放日快速体验的校园路线。",
+            reply_text="I will recommend a route that works well for a quick open-day visit.",
             confidence=0.62,
             debug={"mode": "fallback"},
         )
@@ -273,7 +290,7 @@ def _fallback_nlu(message: str) -> NLUResult:
             places=place_ids,
             ordered_waypoints=place_ids,
             themes=theme_ids,
-            reply_text="我识别到你想依次经过多个地点，接下来会为你规划一条多点导览路线。",
+            reply_text="I can see that you want to visit several places in sequence, so I will plan a multi-stop route.",
             confidence=0.68,
             debug={"mode": "fallback"},
         )
@@ -284,7 +301,7 @@ def _fallback_nlu(message: str) -> NLUResult:
             places=place_ids,
             ordered_waypoints=place_ids,
             themes=[],
-            reply_text="我识别到你的目标地点了，马上为你规划路线。",
+            reply_text="I found your destination. I will plan the route right away.",
             confidence=0.78,
             debug={"mode": "fallback"},
         )
@@ -295,13 +312,13 @@ def _fallback_nlu(message: str) -> NLUResult:
             places=[],
             ordered_waypoints=theme_waypoints_for_ids(theme_ids),
             themes=theme_ids,
-            reply_text="我识别到你的兴趣方向了，接下来会生成一条主题导览路线。",
+            reply_text="I understand the type of places you want to explore, and I will generate a themed campus tour.",
             confidence=0.66,
             debug={"mode": "fallback"},
         )
 
     return _clarification_result(
-        question="可以说得更具体一点吗？例如你想去图书馆、PMB，或者想了解 AI、理工区域、校园生活。",
+        question="Could you be a bit more specific? For example, you can ask for the library, PMB, AI, engineering, or student life.",
         user_message=text,
         confidence=0.3,
         debug={"mode": "fallback"},

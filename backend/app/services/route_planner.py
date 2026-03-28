@@ -69,7 +69,7 @@ def _nearest_centerline(coord: Coord) -> Coord:
             best = pixel
             best_dist = dist_sq
     if best is None:
-        raise RuntimeError("未找到可行走中心线像素")
+        raise RuntimeError("No walkable centerline pixels were found.")
     return best
 
 
@@ -134,7 +134,7 @@ def _astar(start: Coord, goal: Coord) -> tuple[Coord, ...]:
             f_score = tentative_g + _distance(neighbor, goal)
             heapq.heappush(open_heap, (f_score, tentative_g, neighbor))
 
-    raise RuntimeError(f"未找到从 {start} 到 {goal} 的路径")
+    raise RuntimeError(f"No path was found from {start} to {goal}.")
 
 
 def _path_distance(path: list[Coord]) -> float:
@@ -153,7 +153,7 @@ def _logical_place_anchor(place_id: str) -> Coord | None:
 def guide_station() -> Coord:
     station = _load_map_points().get(_GUIDE_STATION_ID)
     if not station:
-        raise RuntimeError("未配置导览装置起点坐标")
+        raise RuntimeError("The guide station start coordinate is not configured.")
     return station
 
 

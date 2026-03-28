@@ -19,7 +19,7 @@ def _qr_data_url(url: str) -> str | None:
 
         import qrcode
     except ImportError:
-        logger.warning("未安装 qrcode，跳过二维码。请执行: pip install 'qrcode[pil]'")
+        logger.warning("qrcode is not installed; skipping QR generation. Run: pip install 'qrcode[pil]'")
         return None
     try:
         buf = io.BytesIO()
@@ -28,7 +28,7 @@ def _qr_data_url(url: str) -> str | None:
         b64 = base64.b64encode(buf.getvalue()).decode("ascii")
         return f"data:image/png;base64,{b64}"
     except Exception as e:
-        logger.warning("二维码生成失败：%s", e)
+        logger.warning("QR generation failed: %s", e)
         return None
 
 
@@ -55,7 +55,7 @@ def _build_guide_response(
     try:
         route_polyline, route_distance_px = build_route_polyline(places)
     except Exception as e:
-        logger.warning("路线规划失败：%s", e)
+        logger.warning("Route planning failed: %s", e)
         route_error = str(e)
 
     session_payload = {
@@ -102,7 +102,7 @@ def run_guide_pipeline(message: str) -> GuideResponse:
     if route_summary:
         reply_zh = route_summary
     else:
-        reply_zh = "好的。"
+        reply_zh = "All set."
 
     return _build_guide_response(
         intent=effective_intent,
@@ -151,7 +151,7 @@ def _build_route_plan_response(
 def plan_route_to_destination(destination: str) -> RoutePlanResponse:
     waypoint_ids = _normalize_waypoint_ids([destination])
     if not waypoint_ids:
-        raise ValueError("无法识别目标地点")
+        raise ValueError("I could not recognize that destination.")
     return _build_route_plan_response(waypoint_ids=waypoint_ids, intent=Intent.route)
 
 
@@ -160,6 +160,6 @@ def plan_multi_stop_route(waypoints: list[str], mode: Intent = Intent.tour) -> R
         mode = Intent.tour
     waypoint_ids = _normalize_waypoint_ids(waypoints)
     if not waypoint_ids:
-        raise ValueError("无法识别可执行的导览点位")
+        raise ValueError("I could not recognize any routeable waypoints.")
     effective_mode = Intent.route if len(waypoint_ids) == 1 and mode == Intent.route else mode
     return _build_route_plan_response(waypoint_ids=waypoint_ids, intent=effective_mode)

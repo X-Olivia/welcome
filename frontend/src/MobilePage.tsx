@@ -259,7 +259,7 @@ async function loadRouteFromSearchParams(searchParams: URLSearchParams): Promise
     .filter(Boolean);
 
   if (rawWaypoints.length === 0) {
-    throw new Error("链接中没有可恢复的路线点位。请重新生成二维码。");
+    throw new Error("This link does not contain recoverable route waypoints. Please generate the QR code again.");
   }
 
   const rawMode = searchParams.get("mode");

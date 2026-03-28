@@ -19,23 +19,23 @@ def arm_action_for_places(place_ids: list[str]) -> ArmAction:
 
 def _fallback_reply(nlu: NLUResult, cards: list[PlaceCard]) -> str:
     if nlu.intent == Intent.route and cards:
-        return f"已为你识别到目标地点「{cards[0].name_zh}」，接下来会规划从导览装置到该地点的路线。"
+        return f"I found your destination, {cards[0].name_zh}. I will now plan the route from the guide station."
     if nlu.intent in (Intent.tour, Intent.recommend_tour) and cards:
         theme_intro_text = theme_intro(nlu.themes[0]) if nlu.themes else None
         if theme_intro_text:
-            return theme_intro_text + f" 建议第一站：{cards[0].name_zh}。"
-        return f"我为你整理了一条包含 {len(cards)} 个停靠点的导览路线，建议第一站先去 {cards[0].name_zh}。"
-    return "我可以继续帮你规划路线。"
+            return theme_intro_text + f" Suggested first stop: {cards[0].name_zh}."
+        return f"I have prepared a tour with {len(cards)} stops. A good first stop is {cards[0].name_zh}."
+    return "I can continue planning a route for you."
 
 
 def compose_reply(nlu: NLUResult) -> tuple[list[PlaceCard], str | None, ArmAction, Intent]:
     if nlu.intent == Intent.clarification or nlu.needs_clarification:
-        text = nlu.clarification_question or nlu.reply_text or "可以再说得具体一点吗？"
+        text = nlu.clarification_question or nlu.reply_text or "Could you be a bit more specific?"
         return [], text, ArmAction.wave, Intent.clarification
 
     cards = build_place_cards(nlu.ordered_waypoints)
     if not cards:
-        return [], "我还没有找到可以执行的导览目标，可以换一种说法再试一次。", ArmAction.wave, Intent.clarification
+        return [], "I could not find a routeable destination yet. Please try another description.", ArmAction.wave, Intent.clarification
 
     arm = arm_action_for_places(nlu.ordered_waypoints)
     summary = nlu.reply_text.strip() or _fallback_reply(nlu, cards)
@@ -51,7 +51,7 @@ def compose_route_plan(
 
     cards = build_place_cards(waypoint_ids)
     if not cards:
-        return [], "我还没有找到可以执行的导览目标。", ArmAction.wave
+        return [], "I could not find a routeable destination.", ArmAction.wave
 
     nlu = NLUResult(
         intent=intent,

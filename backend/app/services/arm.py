@@ -1,9 +1,9 @@
 """
-SO-ARM101（LeRobot）动作层：当前为硬编码映射 + 可选 mock。
+SO-ARM101 action layer: currently a hard-coded mapping with an optional mock mode.
 
-后续接入真机时：
-- 用 LeRobot Robot 配置连接 SO-ARM101，将 ArmAction 映射到示教关节角或轨迹；
-- 或通过独立进程 arm_driver 接收 HTTP/WebSocket，再调用 lerobot。
+When a physical arm is connected later:
+- connect to SO-ARM101 through a LeRobot Robot config and map ArmAction to joint poses or trajectories
+- or send commands through a separate arm_driver process over HTTP/WebSocket and call lerobot there
 """
 
 import logging
@@ -14,9 +14,9 @@ from app.models.schemas import ArmAction
 
 logger = logging.getLogger(__name__)
 
-# 逻辑动作 -> 占位「关节目标」或示教名（leader 损坏时可仅打印/记录）
+# Logical action -> placeholder joint target or taught preset name.
 HARDCODED_PRESETS: dict[ArmAction, dict[str, Any]] = {
-    ArmAction.point_left: {"label": "preset_point_left", "note": "TODO: 填入 SO101 关节角或示教名"},
+    ArmAction.point_left: {"label": "preset_point_left", "note": "TODO: fill in SO101 joint angles or a taught preset name"},
     ArmAction.point_right: {"label": "preset_point_right", "note": "TODO"},
     ArmAction.point_forward: {"label": "preset_point_forward", "note": "TODO"},
     ArmAction.wave: {"label": "preset_wave", "note": "TODO"},
@@ -33,6 +33,6 @@ def execute_arm_action(action: ArmAction) -> dict[str, Any]:
     if settings.arm_mock:
         logger.info("[ARM MOCK] action=%s preset=%s", action.value, preset)
         return {"ok": True, "mock": True, "action": action.value, "preset": preset}
-    # 真机分支占位：例如调用 subprocess 或 ZMQ 到 arm_driver
-    logger.warning("arm_mock=False 但未实现硬件发送，仍仅记录")
+    # Placeholder for the physical arm branch, for example by calling arm_driver via subprocess or ZMQ.
+    logger.warning("arm_mock=False but no hardware sender is implemented yet; logging only")
     return {"ok": True, "mock": False, "action": action.value, "preset": preset}
