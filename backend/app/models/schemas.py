@@ -5,9 +5,10 @@ from pydantic import BaseModel, Field
 
 
 class Intent(str, Enum):
-    wayfinding = "wayfinding"
-    interest_tour = "interest_tour"
-    unclear = "unclear"
+    route = "route"
+    tour = "tour"
+    recommend_tour = "recommend_tour"
+    clarification = "clarification"
 
 
 class ArmAction(str, Enum):
@@ -22,19 +23,40 @@ class ArmAction(str, Enum):
 
 class NLUResult(BaseModel):
     intent: Intent
-    target_place_id: str | None = None
-    interest_theme_id: str | None = None
-    confidence_note: str | None = None
+    places: list[str] = Field(default_factory=list)
+    ordered_waypoints: list[str] = Field(default_factory=list)
+    themes: list[str] = Field(default_factory=list)
+    reply_text: str = ""
+    confidence: float | None = None
+    needs_clarification: bool = False
+    clarification_question: str | None = None
+    debug: dict[str, Any] | None = None
 
 
 class GuideRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=2000)
 
 
+class RouteRequest(BaseModel):
+    destination: str = Field(..., min_length=1, max_length=200)
+
+
+class MultiRouteRequest(BaseModel):
+    waypoints: list[str] = Field(..., min_length=1, max_length=12)
+    mode: Intent = Intent.tour
+
+
 class PlaceCard(BaseModel):
     id: str
     name_zh: str
     blurb: str
+    x: int | None = None
+    y: int | None = None
+
+
+class MapPoint(BaseModel):
+    x: int
+    y: int
 
 
 class GuideResponse(BaseModel):
@@ -43,6 +65,18 @@ class GuideResponse(BaseModel):
     arm_action: ArmAction
     places: list[PlaceCard] = Field(default_factory=list)
     route_summary_zh: str | None = None
+    route_polyline: list[MapPoint] = Field(default_factory=list)
+    route_distance_px: float | None = None
     mobile_url: str | None = None
     qr_data_url: str | None = None
     debug: dict[str, Any] | None = None
+
+
+class RoutePlanResponse(BaseModel):
+    mode: Intent
+    summary: str
+    arm_action: ArmAction
+    waypoints: list[PlaceCard] = Field(default_factory=list)
+    path: list[MapPoint] = Field(default_factory=list)
+    route_distance_px: float | None = None
+    share_url: str | None = None

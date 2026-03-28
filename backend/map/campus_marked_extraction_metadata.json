@@ -1,0 +1,17 @@
+{
+  "source_image": "map.png",
+  "image_width": 1376,
+  "image_height": 1162,
+  "coordinate_system": {
+    "origin": "top-left",
+    "x": "right",
+    "y": "down"
+  },
+  "road_markup_color_rule": "high-saturation bright green",
+  "outputs": {
+    "walkable_mask": "campus_marked_walkable_mask_from_green.png",
+    "centerline_mask": "campus_marked_centerline_from_green.png",
+    "overlay_preview": "campus_marked_extraction_overlay.png"
+  },
+  "note": "This extraction reflects only the green road markup. POI/building coordinates are not included in this pass."
+}

@@ -1,0 +1,244 @@
+{
+  "image": "map.png",
+  "image_size": {
+    "width": 1376,
+    "height": 1162
+  },
+  "coordinate_system": "pixel coordinates, origin=(0,0) top-left, x rightwards, y downwards",
+  "points": [
+    {
+      "id": "GATE 1",
+      "x": 352,
+      "y": 350
+    },
+    {
+      "id": "GATE 2",
+      "x": 770,
+      "y": 190
+    },
+    {
+      "id": "GATE 3",
+      "x": 1090,
+      "y": 250
+    },
+    {
+      "id": "GATE 4",
+      "x": 1160,
+      "y": 285
+    },
+    {
+      "id": "TRENT (1)",
+      "x": 492,
+      "y": 375
+    },
+    {
+      "id": "A Student Recruitment & Admission Office",
+      "x": 482,
+      "y": 420
+    },
+    {
+      "id": "B UNNC Museum",
+      "x": 535,
+      "y": 330
+    },
+    {
+      "id": "PMB (2)",
+      "x": 562,
+      "y": 648
+    },
+    {
+      "id": "YANG Fujia (3)",
+      "x": 633,
+      "y": 572
+    },
+    {
+      "id": "Auditorium (4)",
+      "x": 675,
+      "y": 541
+    },
+    {
+      "id": "PB (5)",
+      "x": 718,
+      "y": 505
+    },
+    {
+      "id": "C The Hub",
+      "x": 685,
+      "y": 495
+    },
+    {
+      "id": "Library (6)",
+      "x": 788,
+      "y": 408
+    },
+    {
+      "id": "Staff Hotel (7)",
+      "x": 858,
+      "y": 286
+    },
+    {
+      "id": "D LA Hotel",
+      "x": 880,
+      "y": 274
+    },
+    {
+      "id": "Student Canteen (8)",
+      "x": 990,
+      "y": 300
+    },
+    {
+      "id": "Villa 9",
+      "x": 882,
+      "y": 360
+    },
+    {
+      "id": "Villa 10",
+      "x": 920,
+      "y": 338
+    },
+    {
+      "id": "Residence 11",
+      "x": 1056,
+      "y": 340
+    },
+    {
+      "id": "Residence 12",
+      "x": 1018,
+      "y": 410
+    },
+    {
+      "id": "Residence 13",
+      "x": 1137,
+      "y": 330
+    },
+    {
+      "id": "Residence 14",
+      "x": 1115,
+      "y": 407
+    },
+    {
+      "id": "Residence 15",
+      "x": 1113,
+      "y": 455
+    },
+    {
+      "id": "Residence 16",
+      "x": 985,
+      "y": 498
+    },
+    {
+      "id": "Residence 17",
+      "x": 954,
+      "y": 560
+    },
+    {
+      "id": "Residence 18",
+      "x": 934,
+      "y": 612
+    },
+    {
+      "id": "Residence 19",
+      "x": 1087,
+      "y": 520
+    },
+    {
+      "id": "Residence 20",
+      "x": 1087,
+      "y": 575
+    },
+    {
+      "id": "Residence 22",
+      "x": 1060,
+      "y": 650
+    },
+    {
+      "id": "23 Residence",
+      "x": 1065,
+      "y": 742
+    },
+    {
+      "id": "E Residential Hub",
+      "x": 1075,
+      "y": 452
+    },
+    {
+      "id": "F Third Canteen",
+      "x": 1069,
+      "y": 536
+    },
+    {
+      "id": "G Third Space",
+      "x": 1092,
+      "y": 536
+    },
+    {
+      "id": "Sports Centre (21)",
+      "x": 974,
+      "y": 848
+    },
+    {
+      "id": "H Health & Wellbeing Centre",
+      "x": 1045,
+      "y": 730
+    },
+    {
+      "id": "DB (24)",
+      "x": 590,
+      "y": 792
+    },
+    {
+      "id": "New Audi (25)",
+      "x": 718,
+      "y": 742
+    },
+    {
+      "id": "NICC (26)",
+      "x": 742,
+      "y": 787
+    },
+    {
+      "id": "Staff Apartments (28)",
+      "x": 770,
+      "y": 223
+    },
+    {
+      "id": "IAMET (29)",
+      "x": 430,
+      "y": 679
+    },
+    {
+      "id": "IEB (30)",
+      "x": 470,
+      "y": 855
+    },
+    {
+      "id": "ICC (35)",
+      "x": 742,
+      "y": 250
+    },
+    {
+      "id": "Outdoor Sports Facilities 37A",
+      "x": 742,
+      "y": 935
+    },
+    {
+      "id": "Outdoor Sports Facilities 37B",
+      "x": 950,
+      "y": 960
+    },
+    {
+      "id": "Ornamental Garden 38A",
+      "x": 642,
+      "y": 414
+    },
+    {
+      "id": "Ornamental Garden 38B",
+      "x": 573,
+      "y": 492
+    }
+  ],
+  "notes": [
+    "Coordinates are first-pass manual annotations on the provided PNG.",
+    "For grouped legend entries (e.g. villas, student residences, outdoor sports facilities, ornamental gardens), multiple coordinates are provided where the map shows multiple footprints."
+  ]
+}

@@ -1,39 +1,218 @@
-# MVP：少量固定地点与主题；后续可换真实拓扑与坐标
+# Campus guide knowledge base used by both NLU normalization and route planning.
 
 places:
   library:
     name_zh: 图书馆
-    aliases: [图书, 自习]
+    name_en: Library
+    aliases: [图书, 自习, library]
+    map_point_id: "Library (6)"
     direction: left
-    blurb: 从本装置出发，沿左侧主路前行约 200 米可见图书馆主入口。
+    blurb: 图书馆位于中央教学区，是开放日里了解学习空间、学术氛围和支持资源的核心地点。
 
-  engineering:
-    name_zh: 工程楼
-    aliases: [工学院, 工院]
+  trent:
+    name_zh: Trent 楼
+    name_en: Trent Building
+    aliases: [trent, trent building, trent楼, trent 楼]
+    map_point_id: "TRENT (1)"
+    direction: left
+    blurb: Trent 楼靠近校园核心入口，适合作为第一次认识校园教学氛围的起点之一。
+
+  admissions_office:
+    name_zh: 招生与录取办公室
+    name_en: Student Recruitment & Admission Office
+    aliases: [招生办, 招生与录取办公室, admission office, admissions office, recruitment office]
+    map_point_id: "A Student Recruitment & Admission Office"
+    direction: left
+    blurb: 招生与录取办公室适合咨询项目、申请和开放日流程，是家长和申请者常会停留的点位。
+
+  museum:
+    name_zh: UNNC 博物馆
+    name_en: UNNC Museum
+    aliases: [博物馆, museum, unnc museum]
+    map_point_id: "B UNNC Museum"
+    direction: left
+    blurb: UNNC 博物馆能帮助访客快速了解学校历史与校园文化，适合第一次来访时建立整体印象。
+
+  pmb:
+    name_zh: 理工楼 PMB
+    name_en: Portland Building (PMB)
+    aliases: [理工楼, 理工教学楼, pmb, portland building]
+    map_point_id: "PMB (2)"
     direction: forward
-    blurb: 工程楼位于中央广场正前方，开放日可参观若干实验室（需现场预约）。
+    blurb: PMB 是理工相关参观路线的常见起点，适合了解工程类学习与教学空间。
 
-  innovation:
-    name_zh: 创新中心
-    aliases: [双创, 孵化]
-    direction: right
-    blurb: 创新中心在右侧片区，常有项目展示与路演。
+  yang_fujia:
+    name_zh: 杨福家楼
+    name_en: YANG Fujia Building
+    aliases: [杨福家, 杨福家楼, yang fujia, yang fujia building, yfj]
+    map_point_id: "YANG Fujia (3)"
+    direction: forward
+    blurb: 杨福家楼靠近教学核心区，适合串联学术氛围和校园主轴线参观。
 
-  cafeteria:
-    name_zh: 食堂
-    aliases: [吃饭, 餐厅]
+  auditorium:
+    name_zh: 会堂
+    name_en: Auditorium
+    aliases: [会堂, auditorium, 礼堂]
+    map_point_id: "Auditorium (4)"
+    direction: forward
+    blurb: 会堂是开放日活动和说明会常见场地，适合第一次来访时作为重要停留点。
+
+  pb:
+    name_zh: PB 教学楼
+    name_en: PB Building
+    aliases: [pb, pb building, pb楼, 教学楼pb]
+    map_point_id: "PB (5)"
+    direction: forward
+    blurb: PB 靠近中央教学区，适合补充了解通用教学空间和课堂环境。
+
+  hub:
+    name_zh: The Hub
+    name_en: The Hub
+    aliases: [the hub, hub, 学生活动中心]
+    map_point_id: "C The Hub"
+    direction: forward
+    blurb: The Hub 更偏学生交流与校园生活体验，是衔接学术区与生活区的轻松停留点。
+
+  student_canteen:
+    name_zh: 学生食堂
+    name_en: Student Canteen
+    aliases: [食堂, 餐厅, 吃饭, canteen, student canteen]
+    map_point_id: "Student Canteen (8)"
     direction: right
-    blurb: 第一食堂在本装置右前方步行约 3 分钟。
+    blurb: 学生食堂适合快速感受日常校园生活，对家长和第一次来访者都比较直观。
+
+  icc:
+    name_zh: ICC 国际会议中心
+    name_en: ICC
+    aliases: [icc, icc building, 国际会议中心]
+    map_point_id: "ICC (35)"
+    direction: forward
+    blurb: ICC 靠近北侧入口区域，适合串联开放日活动、会议和接待场景。
+
+  nicc:
+    name_zh: 创新创业大楼
+    name_en: NICC
+    aliases: [nicc, 创新中心, 创新创业, innovation center, innovation centre]
+    map_point_id: "NICC (26)"
+    direction: right
+    blurb: NICC 常被用于展示创新项目、创业氛围和跨学科实践内容，适合 AI 与创新主题路线。
+
+  db:
+    name_zh: DB 楼
+    name_en: DB Building
+    aliases: [db, db building, db楼]
+    map_point_id: "DB (24)"
+    direction: forward
+    blurb: DB 位于校园南部教学片区，适合和创新与实验相关的路线一起参观。
+
+  new_audi:
+    name_zh: 新报告厅
+    name_en: New Audi
+    aliases: [new audi, 新报告厅, 新演讲厅]
+    map_point_id: "New Audi (25)"
+    direction: forward
+    blurb: 新报告厅适合承接开放日讲座、说明和集中展示内容，是活动型路线中的关键节点。
+
+  residential_hub:
+    name_zh: Residential Hub
+    name_en: Residential Hub
+    aliases: [residential hub, 生活服务中心, 宿舍服务中心]
+    map_point_id: "E Residential Hub"
+    direction: right
+    blurb: Residential Hub 更贴近日常学生生活场景，适合家长了解住宿和生活支持配套。
+
+  third_space:
+    name_zh: Third Space
+    name_en: Third Space
+    aliases: [third space, 第三空间]
+    map_point_id: "G Third Space"
+    direction: right
+    blurb: Third Space 更偏向社交与轻交流场景，适合补充校园生活体验路线。
+
+  health_centre:
+    name_zh: 健康与福祉中心
+    name_en: Health & Wellbeing Centre
+    aliases: [健康中心, health centre, wellbeing centre, 健康与福祉中心]
+    map_point_id: "H Health & Wellbeing Centre"
+    direction: right
+    blurb: 健康与福祉中心能补充展示校园支持体系，对家长和第一次来访者很有帮助。
+
+  sports_centre:
+    name_zh: 体育中心
+    name_en: Sports Centre
+    aliases: [体育馆, 体育中心, sports centre, sports center]
+    map_point_id: "Sports Centre (21)"
+    direction: right
+    blurb: 体育中心适合了解校园运动设施和课余活动，是更完整开放日体验的一部分。
+
+  iamet:
+    name_zh: IAMET
+    name_en: IAMET
+    aliases: [iamet, iamet building]
+    map_point_id: "IAMET (29)"
+    direction: left
+    blurb: IAMET 位于南部理工片区，适合串联工程、制造与应用实践相关参观点。
+
+  ieb:
+    name_zh: 创新与企业大楼 IEB
+    name_en: Innovation and Enterprise Building (IEB)
+    aliases: [ieb, innovation and enterprise building, 企业楼, 双创楼]
+    map_point_id: "IEB (30)"
+    direction: left
+    blurb: IEB 适合补充工程、创新与应用导向的参观内容，是理工导览里的重要节点。
 
 themes:
-  stem:
+  engineering:
     name_zh: 理工区域
-    aliases: [理工, 工科]
-    place_ids: [engineering, innovation, library]
-    intro_zh: 以下路线覆盖工程楼、创新中心与图书馆，适合了解理工与科研氛围。
+    aliases: [理工, 工科, engineering, stem, 理工路线]
+    ordered_waypoints: [pmb, yang_fujia, ieb]
+    intro_zh: 这条路线覆盖 PMB、杨福家楼和 IEB，适合了解工程、理工和项目型学习氛围。
 
   ai_robotics:
     name_zh: AI 与机器人
-    aliases: [人工智能, 机器人]
-    place_ids: [innovation, engineering]
-    intro_zh: 创新中心与工程楼常有机器人与智能系统相关展示。
+    aliases: [人工智能, 机器人, ai, robotics, ai和机器人, ai robot]
+    ordered_waypoints: [pmb, nicc, ieb]
+    intro_zh: 这条路线偏向 AI、机器人和创新展示，适合对智能系统与工程实践感兴趣的访客。
+
+  innovation_startup:
+    name_zh: 创新与创业
+    aliases: [创新, 创业, startup, innovation, innovation route]
+    ordered_waypoints: [nicc, db, new_audi, ieb]
+    intro_zh: 这条路线强调创新项目、展示空间和应用导向的校园体验，适合希望了解创新创业氛围的访客。
+
+  academic_core:
+    name_zh: 学术核心区
+    aliases: [学术, academic, academic core, 教学区]
+    ordered_waypoints: [trent, library, yang_fujia, pb]
+    intro_zh: 这条路线围绕校园核心教学区展开，适合第一次来访时快速建立对学术环境的认识。
+
+  admissions_info:
+    name_zh: 招生与校园认识
+    aliases: [招生, admissions, 申请咨询, information route]
+    ordered_waypoints: [admissions_office, museum, auditorium]
+    intro_zh: 这条路线适合先了解招生信息、学校背景和开放日活动安排，比较适合家长和申请者。
+
+  campus_life:
+    name_zh: 校园生活
+    aliases: [校园生活, 学生生活, 生活区, student life, canteen]
+    ordered_waypoints: [library, hub, student_canteen, residential_hub]
+    intro_zh: 这条路线从学习空间延展到交流与日常生活区域，适合家长和第一次来访者快速建立校园印象。
+
+  wellbeing_sports:
+    name_zh: 生活支持与运动
+    aliases: [运动, wellbeing, sports, 健康支持, 体育]
+    ordered_waypoints: [student_canteen, health_centre, sports_centre]
+    intro_zh: 这条路线更关注校园支持体系、日常生活便利和运动设施，适合想了解学生整体体验的访客。
+
+  landmark:
+    name_zh: 校园亮点
+    aliases: [值得看, landmark, 打卡, 看看学校, highlights]
+    ordered_waypoints: [museum, library, auditorium, hub]
+    intro_zh: 这是一条偏校园亮点的简洁路线，适合时间有限但希望快速建立整体印象的访客。
+
+  first_visit:
+    name_zh: 第一次来推荐路线
+    aliases: [第一次来, 随便看看, 有什么推荐, 推荐路线, 怎么逛, first visit, open day tour]
+    ordered_waypoints: [museum, library, hub, student_canteen, auditorium]
+    intro_zh: 这条推荐路线适合第一次来到校园开放日的访客，兼顾校园认识、学习空间、生活场景和活动体验。
+    default_recommendation: true

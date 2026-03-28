@@ -10,6 +10,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
+        <Route path="/mobile" element={<MobilePage />} />
         <Route path="/m/:token" element={<MobilePage />} />
       </Routes>
     </BrowserRouter>

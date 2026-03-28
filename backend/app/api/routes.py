@@ -1,8 +1,14 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.schemas import GuideRequest, GuideResponse
+from app.models.schemas import (
+    GuideRequest,
+    GuideResponse,
+    MultiRouteRequest,
+    RoutePlanResponse,
+    RouteRequest,
+)
 from app.services.arm import execute_arm_action
-from app.services.decision import run_guide_pipeline
+from app.services.decision import plan_multi_stop_route, plan_route_to_destination, run_guide_pipeline
 from app.services.session_store import get as session_get
 
 router = APIRouter()
@@ -25,6 +31,22 @@ def post_guide(body: GuideRequest) -> GuideResponse:
     else:
         result.debug = {"arm": arm_result}
     return result
+
+
+@router.post("/route", response_model=RoutePlanResponse)
+def post_route(body: RouteRequest) -> RoutePlanResponse:
+    try:
+        return plan_route_to_destination(body.destination)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/route/multi", response_model=RoutePlanResponse)
+def post_multi_route(body: MultiRouteRequest) -> RoutePlanResponse:
+    try:
+        return plan_multi_stop_route(body.waypoints, body.mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/health")
