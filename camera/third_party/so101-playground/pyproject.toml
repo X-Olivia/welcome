@@ -1,0 +1,19 @@
+[project]
+name = "so-101-setup"
+version = "0.1.0"
+description = "SO-101 Robot Arm Setup and Control"
+requires-python = ">=3.10"
+dependencies = [
+    "opencv-python>=4.8.0",
+    "lerobot @ git+https://github.com/huggingface/lerobot.git",
+    "feetech-servo-sdk>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+]
+rl = [
+    "stable-baselines3>=2.0.0",
+    "gymnasium>=1.0.0",
+]

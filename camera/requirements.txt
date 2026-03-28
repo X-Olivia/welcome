@@ -1,0 +1,3 @@
+# 与 conda 环境 lerobot 一起使用时，通常已含 numpy；以下为摄像头侧依赖
+opencv-python>=4.8.0
+numpy>=1.24.0

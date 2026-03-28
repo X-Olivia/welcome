@@ -1,0 +1,39 @@
+# MVP：少量固定地点与主题；后续可换真实拓扑与坐标
+
+places:
+  library:
+    name_zh: 图书馆
+    aliases: [图书, 自习]
+    direction: left
+    blurb: 从本装置出发，沿左侧主路前行约 200 米可见图书馆主入口。
+
+  engineering:
+    name_zh: 工程楼
+    aliases: [工学院, 工院]
+    direction: forward
+    blurb: 工程楼位于中央广场正前方，开放日可参观若干实验室（需现场预约）。
+
+  innovation:
+    name_zh: 创新中心
+    aliases: [双创, 孵化]
+    direction: right
+    blurb: 创新中心在右侧片区，常有项目展示与路演。
+
+  cafeteria:
+    name_zh: 食堂
+    aliases: [吃饭, 餐厅]
+    direction: right
+    blurb: 第一食堂在本装置右前方步行约 3 分钟。
+
+themes:
+  stem:
+    name_zh: 理工区域
+    aliases: [理工, 工科]
+    place_ids: [engineering, innovation, library]
+    intro_zh: 以下路线覆盖工程楼、创新中心与图书馆，适合了解理工与科研氛围。
+
+  ai_robotics:
+    name_zh: AI 与机器人
+    aliases: [人工智能, 机器人]
+    place_ids: [innovation, engineering]
+    intro_zh: 创新中心与工程楼常有机器人与智能系统相关展示。
