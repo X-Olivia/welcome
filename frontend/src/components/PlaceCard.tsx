@@ -6,7 +6,6 @@ interface PlaceCardProps {
   isOpen: boolean;
   onClose: () => void;
   onGo: () => void;
-  onAddToRoute: () => void;
 }
 
 export function PlaceCard({
@@ -17,7 +16,6 @@ export function PlaceCard({
   isOpen,
   onClose,
   onGo,
-  onAddToRoute,
 }: PlaceCardProps) {
   return (
     <section className={`place-sheet ${isOpen ? "place-sheet--open" : ""}`}>
@@ -42,11 +40,8 @@ export function PlaceCard({
       <p className="place-sheet__meta">{meta}</p>
 
       <div className="place-sheet__actions">
-        <button className="place-sheet__secondary" type="button" onClick={onGo}>
+        <button className="place-sheet__primary" type="button" onClick={onGo}>
           Go
-        </button>
-        <button className="place-sheet__primary" type="button" onClick={onAddToRoute}>
-          Add to route
         </button>
       </div>
     </section>

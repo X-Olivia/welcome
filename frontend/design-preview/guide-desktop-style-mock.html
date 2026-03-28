@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Desktop Guide — 浅色 · 校园蓝 示意</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /*
+        浅色 · 青春校园（参考 mymonthly.io：滚动横幅、粉绿春色系 + 诺丁汉深蓝 #001C3D）
+        - 地图在对话框下；主列加宽
+      */
+      :root {
+        --brand-navy: #001c3d;
+        --bg-cream: #fbfbfd;
+        --bg-mint: #eef6ff;
+        --surface: #ffffff;
+        --spring-pink: #f472b6;
+        --spring-pink-soft: #fce7f3;
+        --spring-rose: #fda4af;
+        --spring-green: #4ade80;
+        --spring-mint: #bbf7d0;
+        --spring-leaf: #86efac;
+        --blue-900: #0c4a6e;
+        --blue-800: #075985;
+        --blue-600: #0284c7;
+        --blue-700: #0369a1;
+        --blue-500: #0ea5e9;
+        --blue-400: #38bdf8;
+        --blue-200: #bae6fd;
+        --blue-100: #e0f2fe;
+        --blue-50: #f0f9ff;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --text-soft: #94a3b8;
+        --line: rgba(14, 165, 233, 0.12);
+        --line-strong: rgba(14, 165, 233, 0.22);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --shadow-card: 0 4px 6px -1px rgba(244, 114, 182, 0.08), 0 18px 48px -14px rgba(0, 28, 61, 0.1);
+        --shadow-map: 0 10px 40px rgba(0, 28, 61, 0.09);
+        --font: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        color-scheme: light;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font);
+        color: var(--text);
+        background: var(--bg-cream);
+        -webkit-font-smoothing: antialiased;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* 春日系色块 + 蓝天（粉 / 薄荷 / 蓝） */
+      .ambient {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background:
+          radial-gradient(ellipse 65% 45% at 5% 0%, rgba(253, 164, 175, 0.35), transparent 52%),
+          radial-gradient(ellipse 55% 50% at 95% 8%, rgba(134, 239, 172, 0.32), transparent 48%),
+          radial-gradient(ellipse 70% 50% at 12% 100%, rgba(56, 189, 248, 0.22), transparent 55%),
+          radial-gradient(ellipse 60% 40% at 88% 95%, rgba(244, 114, 182, 0.12), transparent 50%),
+          linear-gradient(180deg, #fffafd 0%, var(--bg-cream) 35%, #f3fbf7 70%, #f5f9ff 100%);
+      }
+
+      /* —— 滚动横幅（mymonthly.io 式无限滚动） —— */
+      .marquee-bar {
+        position: relative;
+        z-index: 4;
+        width: 100%;
+        overflow: hidden;
+        border-top: 1px solid rgba(253, 164, 175, 0.25);
+        border-bottom: 1px solid rgba(134, 239, 172, 0.3);
+        background: linear-gradient(
+          105deg,
+          #fff5f8 0%,
+          #ecfdf5 18%,
+          #e0f2fe 38%,
+          #fdf2f8 58%,
+          #f0fdf4 78%,
+          #fff5f8 100%
+        );
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .marquee-bar__fade {
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: linear-gradient(
+          90deg,
+          var(--bg-cream) 0%,
+          transparent 6%,
+          transparent 94%,
+          var(--bg-cream) 100%
+        );
+      }
+
+      .marquee-bar__inner {
+        overflow: hidden;
+        padding: 14px 0;
+      }
+
+      .marquee-bar__track {
+        display: flex;
+        width: max-content;
+        align-items: center;
+        gap: 0;
+        animation: marquee-scroll 38s linear infinite;
+      }
+
+      @keyframes marquee-scroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      .marquee-bar__group {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .marquee-bar__item {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 28px;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: var(--brand-navy);
+        white-space: nowrap;
+      }
+
+      .marquee-bar__item img {
+        height: 30px;
+        width: auto;
+        display: block;
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 4px rgba(0, 28, 61, 0.12));
+      }
+
+      .marquee-bar__sep {
+        color: var(--spring-pink);
+        font-size: 12px;
+        opacity: 0.85;
+        user-select: none;
+      }
+
+      .marquee-bar__w {
+        color: var(--spring-green);
+        font-weight: 800;
+      }
+
+      .grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.035;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      .page {
+        position: relative;
+        z-index: 2;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 40px 28px 110px;
+      }
+
+      .topbar {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .brand__mark {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        object-fit: contain;
+        background: #fff;
+        padding: 8px;
+        box-shadow:
+          0 0 0 1px rgba(244, 114, 182, 0.2),
+          0 12px 32px rgba(0, 28, 61, 0.1);
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--brand-navy);
+        margin: 0;
+        opacity: 0.85;
+      }
+
+      .title {
+        font-size: clamp(28px, 5vw, 44px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin: 0;
+        max-width: 22ch;
+        color: var(--brand-navy);
+      }
+
+      .title .hl {
+        background: linear-gradient(
+          120deg,
+          var(--spring-pink) 0%,
+          var(--blue-600) 35%,
+          var(--spring-green) 70%,
+          var(--blue-400) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .lede {
+        font-size: 17px;
+        line-height: 1.65;
+        color: var(--text-muted);
+        max-width: 46ch;
+        margin: 12px auto 0;
+        font-weight: 400;
+      }
+
+      .lede strong {
+        color: var(--blue-800);
+        font-weight: 600;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 22px;
+      }
+
+      .pill {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 2px solid var(--line-strong);
+        background: var(--surface);
+        color: var(--blue-800);
+        box-shadow: 0 2px 8px rgba(14, 116, 179, 0.06);
+      }
+
+      .pill--accent {
+        border-color: rgba(14, 165, 233, 0.45);
+        background: linear-gradient(180deg, var(--blue-50) 0%, #fff 100%);
+        color: var(--blue-800);
+      }
+
+      .pill--spring-pink {
+        border-color: rgba(244, 114, 182, 0.45);
+        background: linear-gradient(180deg, var(--spring-pink-soft) 0%, #fff 100%);
+        color: #9d174d;
+      }
+
+      .pill--spring-green {
+        border-color: rgba(74, 222, 128, 0.45);
+        background: linear-gradient(180deg, #ecfdf5 0%, #fff 100%);
+        color: #14532d;
+      }
+
+      /* 单列：上对话框 · 下地图，居中放大 */
+      .layout {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        align-items: stretch;
+        width: 100%;
+      }
+
+      .stream {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius-xl);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+      }
+
+      .stream::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 6%;
+        right: 6%;
+        height: 4px;
+        border-radius: 0 0 10px 10px;
+        background: linear-gradient(
+          90deg,
+          var(--spring-pink),
+          var(--blue-500),
+          var(--spring-green),
+          var(--blue-400),
+          var(--spring-pink)
+        );
+        opacity: 0.95;
+        pointer-events: none;
+      }
+
+      .stream__section {
+        padding: 32px 36px 26px;
+      }
+
+      .stream__section + .stream__section {
+        border-top: 1px solid rgba(14, 165, 233, 0.1);
+      }
+
+      .section-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--blue-600);
+        margin: 0 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-label .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, var(--blue-400), var(--blue-600));
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.45);
+      }
+
+      .composer {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .composer__hint {
+        font-size: 15px;
+        color: var(--text-muted);
+        line-height: 1.55;
+        margin: 0;
+      }
+
+      .composer__field {
+        border: 2px solid var(--line-strong);
+        border-radius: var(--radius-md);
+        background: var(--blue-50);
+        overflow: hidden;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .composer__field:focus-within {
+        border-color: rgba(14, 165, 233, 0.55);
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+        background: #fff;
+      }
+
+      .composer__textarea {
+        display: block;
+        width: 100%;
+        min-height: 152px;
+        padding: 22px 24px;
+        border: none;
+        resize: vertical;
+        font: inherit;
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--text);
+        background: transparent;
+      }
+
+      .composer__textarea::placeholder {
+        color: var(--text-soft);
+      }
+
+      .composer__textarea:focus {
+        outline: none;
+      }
+
+      .composer__toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-top: 1px solid rgba(14, 165, 233, 0.12);
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .chip {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 13px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--blue-800);
+        cursor: default;
+        white-space: nowrap;
+      }
+
+      .chip:hover {
+        border-color: var(--blue-400);
+        background: var(--blue-50);
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .btn {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 22px;
+        cursor: pointer;
+        transition:
+          transform 0.15s,
+          box-shadow 0.2s;
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn--primary {
+        color: #fff;
+        background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 50%, #0369a1 100%);
+        box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
+      }
+
+      .btn--primary:hover {
+        box-shadow: 0 6px 22px rgba(14, 165, 233, 0.48);
+      }
+
+      .btn--mic {
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--blue-100);
+        color: var(--blue-600);
+        border: 2px solid rgba(14, 165, 233, 0.25);
+      }
+
+      .btn--mic:hover {
+        background: var(--blue-200);
+      }
+
+      .btn--mic svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      .microcopy {
+        font-size: 12px;
+        color: var(--text-soft);
+        margin: 6px 0 0;
+        line-height: 1.45;
+      }
+
+      .route-flow {
+        display: none;
+      }
+
+      .route-flow.is-visible {
+        display: block;
+      }
+
+      .route-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .route-head h3 {
+        margin: 6px 0 0;
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--blue-900);
+      }
+
+      .pill--intent {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 2px solid rgba(14, 165, 233, 0.35);
+        background: var(--blue-50);
+        color: var(--blue-700);
+        white-space: nowrap;
+      }
+
+      .overview {
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text-muted);
+        margin: 0 0 20px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      @media (max-width: 600px) {
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .metric {
+        padding: 16px 18px;
+        border-radius: var(--radius-sm);
+        background: linear-gradient(180deg, var(--blue-50) 0%, #fff 100%);
+        border: 1px solid var(--line);
+      }
+
+      .metric span {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+        margin-bottom: 6px;
+      }
+
+      .metric strong {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--blue-900);
+      }
+
+      .stop-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .stop {
+        display: flex;
+        gap: 14px;
+        padding: 16px 18px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+        background: #fafdff;
+      }
+
+      .stop__idx {
+        flex-shrink: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(145deg, var(--blue-500), var(--blue-600));
+        color: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+      }
+
+      .stop__body h4 {
+        margin: 0 0 4px;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--blue-900);
+      }
+
+      .stop__body p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .handoff {
+        display: none;
+        align-items: center;
+        gap: 22px;
+        padding: 26px 36px;
+        background: linear-gradient(135deg, var(--spring-pink-soft) 0%, var(--bg-mint) 45%, #ecfdf5 100%);
+        border-top: 1px solid rgba(244, 114, 182, 0.15);
+      }
+
+      .handoff.is-visible {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .handoff__copy {
+        flex: 1;
+        min-width: 220px;
+      }
+
+      .handoff__copy h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--blue-900);
+      }
+
+      .handoff__copy p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.55;
+      }
+
+      .qr {
+        width: 118px;
+        height: 118px;
+        border-radius: 16px;
+        background: repeating-conic-gradient(rgba(14, 165, 233, 0.06) 0% 25%, #fff 0% 50%) 50% / 14px
+          14px;
+        border: 2px solid var(--line-strong);
+        flex-shrink: 0;
+        box-shadow: var(--shadow-card);
+      }
+
+      /* 地图在下方：与上同宽、更高展示 */
+      .map-column {
+        border-radius: var(--radius-xl);
+        border: 1px solid rgba(244, 114, 182, 0.12);
+        background: var(--surface);
+        box-shadow: var(--shadow-map);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 480px;
+      }
+
+      .map-column__head {
+        padding: 24px 32px 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+        background: linear-gradient(180deg, var(--spring-pink-soft) 0%, var(--blue-50) 55%, #fff 100%);
+      }
+
+      .map-column__head h2 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--brand-navy);
+      }
+
+      .map-column__head p {
+        margin: 10px 0 0;
+        font-size: 15px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        max-width: 42ch;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .map-placeholder {
+        flex: 1;
+        min-height: 400px;
+        position: relative;
+        background:
+          linear-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+          radial-gradient(ellipse 70% 50% at 20% 30%, rgba(253, 164, 175, 0.2), transparent 55%),
+          radial-gradient(ellipse 60% 45% at 85% 60%, rgba(134, 239, 172, 0.22), transparent 50%),
+          radial-gradient(ellipse 75% 55% at 50% 38%, rgba(56, 189, 248, 0.18), transparent 65%),
+          linear-gradient(165deg, #e0f2fe 0%, #fdf2f8 35%, #f0fdf4 70%, #f8fbff 100%);
+        background-size:
+          28px 28px,
+          28px 28px,
+          100% 100%,
+          100% 100%;
+      }
+
+      .map-placeholder::after {
+        content: "";
+        position: absolute;
+        inset: 14% 14% 18% 14%;
+        border-radius: 999px;
+        border: 3px solid transparent;
+        background: linear-gradient(135deg, var(--blue-400), rgba(14, 165, 233, 0.15)) border-box;
+        -webkit-mask:
+          linear-gradient(#fff 0 0) padding-box,
+          linear-gradient(#fff 0 0);
+        mask:
+          linear-gradient(#fff 0 0) padding-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .map-placeholder__label {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--blue-800);
+        padding: 12px 20px;
+        border-radius: 999px;
+        border: 2px solid rgba(14, 165, 233, 0.25);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(14, 116, 179, 0.12);
+        white-space: nowrap;
+      }
+
+      .map-column__foot {
+        padding: 16px 26px;
+        font-size: 12px;
+        color: var(--text-soft);
+        text-align: center;
+        border-top: 1px solid rgba(14, 165, 233, 0.1);
+        line-height: 1.5;
+        background: #fafdff;
+      }
+
+      .loading-skel {
+        display: none;
+        gap: 12px;
+        flex-direction: column;
+      }
+
+      .loading-skel.is-visible {
+        display: flex;
+      }
+
+      .sk {
+        height: 12px;
+        border-radius: 8px;
+        background: linear-gradient(
+          90deg,
+          var(--blue-100) 0%,
+          rgba(14, 165, 233, 0.2) 50%,
+          var(--blue-100) 100%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.35s ease-in-out infinite;
+      }
+
+      .sk--w80 {
+        width: 80%;
+      }
+
+      .sk--w55 {
+        width: 55%;
+      }
+
+      .sk--h72 {
+        height: 80px;
+        border-radius: var(--radius-sm);
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: 100% 0;
+        }
+        100% {
+          background-position: -100% 0;
+        }
+      }
+
+      .demo-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid var(--line);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        z-index: 20;
+        box-shadow: 0 -4px 24px rgba(14, 116, 179, 0.08);
+      }
+
+      .demo-bar span {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-soft);
+        margin-right: 4px;
+      }
+
+      .demo-bar button {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 2px solid var(--line);
+        background: #fff;
+        color: var(--blue-800);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+
+      .demo-bar button:hover {
+        border-color: var(--blue-400);
+      }
+
+      .demo-bar button.is-active {
+        border-color: var(--blue-500);
+        background: var(--blue-50);
+        color: var(--blue-900);
+        box-shadow: 0 2px 12px rgba(14, 165, 233, 0.2);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .marquee-bar__track {
+          animation: none;
+          justify-content: center;
+          flex-wrap: wrap;
+          width: 100%;
+          max-width: 1120px;
+          margin: 0 auto;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="marquee-bar">
+      <div class="marquee-bar__fade" aria-hidden="true"></div>
+      <div class="marquee-bar__inner">
+        <div class="marquee-bar__track">
+          <div class="marquee-bar__group">
+            <span class="marquee-bar__item">
+              <img src="nottingham-logo.png" alt="" />
+              Open Day!
+            </span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item"><span class="marquee-bar__w">Welcome!</span></span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">Generate your own route</span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">Explore UNNC</span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">Spring on campus</span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">你的 visit · 你的节奏</span>
+          </div>
+          <div class="marquee-bar__group" aria-hidden="true">
+            <span class="marquee-bar__item">
+              <img src="nottingham-logo.png" alt="" />
+              Open Day!
+            </span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item"><span class="marquee-bar__w">Welcome!</span></span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">Generate your own route</span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">Explore UNNC</span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">Spring on campus</span>
+            <span class="marquee-bar__sep" aria-hidden="true">✦</span>
+            <span class="marquee-bar__item">你的 visit · 你的节奏</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <img
+            class="brand__mark"
+            src="nottingham-logo.png"
+            alt="University of Nottingham"
+            width="72"
+            height="72"
+          />
+          <p class="eyebrow">UNNC Open Day</p>
+          <h1 class="title">这趟参观，是<span class="hl">为你</span>准备的</h1>
+          <p class="lede">
+            每位访客的兴趣不同，路线也应不同。用<strong>文字或语音</strong>告诉向导——我们会生成<strong>只属于你的</strong>动线；再用手机<strong>扫码</strong>，边走边看。
+          </p>
+          <div class="pill-row">
+            <span class="pill pill--spring-pink">你的路线</span>
+            <span class="pill pill--accent">实时地图</span>
+            <span class="pill pill--spring-green">手机续看</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout">
+        <div class="stream" aria-label="向导与路线">
+          <div class="stream__section">
+            <p class="section-label"><span class="dot" aria-hidden="true"></span>向向导提问</p>
+            <div class="composer">
+              <p class="composer__hint">
+                输入想法，或点麦克风直接说——<strong style="color: var(--blue-800)">同一输入区完成</strong>，无需切换模块。
+              </p>
+              <div class="composer__field">
+                <textarea
+                  class="composer__textarea"
+                  placeholder="例如：我想先看图书馆，再去工学院附近转转……"
+                  readonly
+                ></textarea>
+                <div class="composer__toolbar">
+                  <div class="chip-row" aria-hidden="true">
+                    <span class="chip">图书馆怎么走</span>
+                    <span class="chip">AI 与机器人</span>
+                    <span class="chip">带家人看校园生活</span>
+                  </div>
+                  <div class="actions">
+                    <button type="button" class="btn btn--primary" tabindex="-1">生成路线</button>
+                    <button type="button" class="btn btn--mic" aria-label="语音（示意）" title="语音">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                          d="M12 17v-5M8 9a4 4 0 0 1 8 0v5a4 4 0 0 1-8 0V9Z"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                        <path d="M19 11a7 7 0 0 1-14 0" stroke-linecap="round" />
+                        <path d="M12 21v-2" stroke-linecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p class="microcopy">语音识别状态将收敛为输入区一角，而非第二块面板。</p>
+            </div>
+          </div>
+
+          <div class="stream__section loading-skel" id="state-loading">
+            <p class="section-label">正在理解你的兴趣</p>
+            <div class="sk sk--w80"></div>
+            <div class="sk sk--w55"></div>
+            <div class="sk sk--h72"></div>
+          </div>
+
+          <div class="stream__section route-flow" id="state-result">
+            <div class="route-head">
+              <div>
+                <p class="section-label" style="margin-bottom: 4px">你的开放日路线</p>
+                <h3>从向导站出发 · 按你的主题串联</h3>
+              </div>
+              <span class="pill--intent">Theme route</span>
+            </div>
+            <p class="overview">
+              根据你的描述，我们优先安排安静的学习空间，再过渡到理工体验区，最后回到生活动线——节奏可在手机地图上随时调整。
+            </p>
+            <div class="metrics">
+              <div class="metric">
+                <span>预计步行</span>
+                <strong>约 18 分钟</strong>
+              </div>
+              <div class="metric">
+                <span>推荐停留</span>
+                <strong>4 处</strong>
+              </div>
+              <div class="metric">
+                <span>更适合</span>
+                <strong>首次访客</strong>
+              </div>
+            </div>
+            <div class="stop-list">
+              <div class="stop">
+                <div class="stop__idx">1</div>
+                <div class="stop__body">
+                  <h4>Hallward Library</h4>
+                  <p>自习区与借阅流程概览，作为「校园节奏」的第一站。</p>
+                </div>
+              </div>
+              <div class="stop">
+                <div class="stop__idx">2</div>
+                <div class="stop__body">
+                  <h4>Innovation Building</h4>
+                  <p>理工与智能展示动线，与你提到的兴趣对齐。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="handoff" id="state-handoff">
+            <div class="handoff__copy">
+              <h4>在手机上继续这段路线</h4>
+              <p>扫描后全屏查看地图与站点说明——桌面端负责想清楚，路上交给手机。</p>
+            </div>
+            <div class="qr" role="img" aria-label="QR 占位"></div>
+          </div>
+        </div>
+
+        <aside class="map-column" aria-label="校园地图">
+          <div class="map-column__head">
+            <h2>Campus map</h2>
+            <p>路线与站点叠在地图上；与上方对话区同宽居中，便于一眼看完动线。</p>
+          </div>
+          <div class="map-placeholder">
+            <span class="map-placeholder__label">Live map layer</span>
+          </div>
+          <div class="map-column__foot">地图区加高展示；摘要可收束为角落信息，避免重复堆字。</div>
+        </aside>
+      </div>
+    </div>
+
+    <div class="demo-bar" role="toolbar" aria-label="预览状态">
+      <span>状态：</span>
+      <button type="button" data-state="empty">仅输入</button>
+      <button type="button" data-state="loading">加载中</button>
+      <button type="button" data-state="result" class="is-active">路线 + 扫码</button>
+    </div>
+
+    <script>
+      (function () {
+        const loading = document.getElementById("state-loading");
+        const result = document.getElementById("state-result");
+        const handoff = document.getElementById("state-handoff");
+        const buttons = document.querySelectorAll(".demo-bar button");
+
+        function setState(name) {
+          const showLoading = name === "loading";
+          const showResult = name === "result";
+
+          loading.classList.toggle("is-visible", showLoading);
+          result.classList.toggle("is-visible", showResult);
+          handoff.classList.toggle("is-visible", showResult);
+
+          buttons.forEach((btn) => {
+            btn.classList.toggle("is-active", btn.getAttribute("data-state") === name);
+          });
+        }
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => setState(btn.getAttribute("data-state")));
+        });
+
+        setState("result");
+      })();
+    </script>
+  </body>
+</html>

@@ -11,6 +11,15 @@ const starterPrompts = [
   "I want to see student life and food spots.",
 ];
 
+const marqueeItems = [
+  "Open Day",
+  "Welcome to UNNC",
+  "Generate your own route",
+  "Explore the campus live",
+  "Voice and text guidance",
+  "Continue on your phone",
+];
+
 export function App() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,237 +77,237 @@ export function App() {
   const showTransfer = Boolean(result?.mobile_url && stopCount > 0);
   const overviewText =
     result?.route_summary_zh?.trim() || result?.reply_zh?.trim() || "Tell the guide what you want to explore.";
+  const streamHeading = loading
+    ? "Understanding your route"
+    : result
+      ? "Your route, tailored for you"
+      : "A personal guide, ready when you are";
+  const routeTagline =
+    result?.intent === "route"
+      ? "A direct route shaped around one destination."
+      : result?.intent === "tour"
+        ? "A themed route shaped around what you want to discover."
+        : result?.intent === "recommend_tour"
+          ? "A recommended route based on your interests and open-day flow."
+          : "A route becomes clearer when you describe what matters to you.";
 
   return (
-    <div className="app-shell">
-      <div className="app-shell__glow app-shell__glow--left" />
-      <div className="app-shell__glow app-shell__glow--right" />
+    <div className="showcase-shell">
+      <div className="showcase-shell__ambient" aria-hidden="true" />
+      <div className="showcase-shell__grain" aria-hidden="true" />
 
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">UNNC Open Day</p>
-          <h1 className="hero-title">Ask, Discover, Start Your Route</h1>
-          <p className="hero-copy">
-            A campus guide experience designed for open-day visitors. Ask for a place, a theme,
-            or the kind of campus life you want to explore.
-          </p>
-        </div>
-
-        <div className="topbar__meta">
-          <span className="meta-chip">AI Guide</span>
-          <span className="meta-chip">Live Map</span>
-          <span className="meta-chip">Phone Handoff</span>
-        </div>
-      </header>
-
-      <main className="desktop-grid">
-        <section className="panel panel--prompt">
-          <div className="panel__header">
-            <p className="panel__eyebrow">Main Interaction</p>
-            <h2 className="panel__title">Tell the guide what you want to see</h2>
-            <p className="panel__copy">
-              Use the keyboard or natural language to describe a destination, a theme, or a short
-              campus visit you care about.
-            </p>
-          </div>
-
-          <form className="prompt-form" onSubmit={onSubmit}>
-            <label className="prompt-form__label" htmlFor="guide-input">
-              Where would you like to go, or what would you like to explore today?
-            </label>
-            <textarea
-              id="guide-input"
-              className="prompt-form__textarea"
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              rows={4}
-              placeholder="For example: How do I get to the library? / I want to explore AI and robotics / Show my family student life"
-              disabled={loading}
-            />
-            <div className="prompt-form__actions">
-              <button className="primary-button" type="submit" disabled={loading || !input.trim()}>
-                {loading ? "Planning Route..." : "Generate Route"}
-              </button>
-              <p className="micro-note">
-                You can ask for places, themes, or an open-day route tailored to your interests.
-              </p>
-            </div>
-          </form>
-
-          <section className="voice-panel">
-            <div className="voice-panel__header">
-              <div>
-                <p className="panel__eyebrow">Voice Dialogue</p>
-                <h3>Speak to the guide</h3>
+      <section className="showcase-marquee" aria-label="Open day highlights">
+        <div className="showcase-marquee__fade" aria-hidden="true" />
+        <div className="showcase-marquee__inner">
+          <div className="showcase-marquee__track">
+            {[0, 1].map((group) => (
+              <div className="showcase-marquee__group" key={group} aria-hidden={group === 1}>
+                {marqueeItems.map((item, index) => (
+                  <div className="showcase-marquee__item" key={`${group}-${item}`}>
+                    {index === 0 && <img src="/Nottingham_logo.png" alt="" />}
+                    <span>{item}</span>
+                    <span className="showcase-marquee__sep">✦</span>
+                  </div>
+                ))}
               </div>
-              <span className={`voice-phase voice-phase--${voice.phase}`}>
-                {voicePhaseLabel(voice.phase)}
-              </span>
-            </div>
-
-            <div className="voice-panel__body">
-              <button
-                className={`voice-trigger ${voice.isActive ? "voice-trigger--active" : ""}`}
-                type="button"
-                onClick={() => void voice.startOrStop()}
-                disabled={loading && !voice.isActive}
-              >
-                <span className="voice-trigger__dot" />
-                <span>{voice.isActive ? "Stop Voice Mode" : "Start Voice Dialogue"}</span>
-              </button>
-
-              <div className="voice-status-card">
-                <p className="voice-status-card__title">{voice.statusText}</p>
-                {voice.lastTranscript && (
-                  <p className="voice-status-card__transcript">“{voice.lastTranscript}”</p>
-                )}
-                {voice.errorText && <p className="voice-status-card__error">{voice.errorText}</p>}
-              </div>
-            </div>
-          </section>
-
-          <div className="suggestion-row" aria-label="Suggested prompts">
-            {starterPrompts.map((prompt) => (
-              <button
-                key={prompt}
-                className="suggestion-chip"
-                type="button"
-                onClick={() => {
-                  setInput(prompt);
-                  void runQuery(prompt).catch(() => undefined);
-                }}
-                disabled={loading}
-              >
-                {prompt}
-              </button>
             ))}
           </div>
+        </div>
+      </section>
 
-          <section className="panel panel--result">
-            <div className="result-header">
-              <div>
-                <p className="panel__eyebrow">Guide Result</p>
-                <h3 className="result-title">
-                  {loading
-                    ? "Understanding your request"
-                    : result
-                      ? "Your Open Day Route"
-                      : "Ready to shape a campus route"}
-                </h3>
-              </div>
-              {result && (
-                <span className={`intent-pill intent-pill--${result.intent}`}>
-                  {intentLabel(result.intent)}
-                </span>
-              )}
+      <div className="showcase-page">
+        <header className="showcase-hero">
+          <div className="showcase-hero__decor" aria-hidden="true">
+            <span className="showcase-sticker showcase-sticker--sun">Open Day</span>
+            <span className="showcase-sticker showcase-sticker--blue">Live route</span>
+            <span className="showcase-sticker showcase-sticker--mint" />
+            <span className="showcase-sticker showcase-sticker--spark">✦</span>
+          </div>
+
+          <div className="showcase-brand">
+            <img
+              className="showcase-brand__mark"
+              src="/Nottingham_logo.png"
+              alt="University of Nottingham Ningbo China"
+            />
+            <p className="showcase-eyebrow">UNNC Open Day</p>
+            <h1 className="showcase-title">
+              A campus visit,
+              <span> designed around you</span>
+            </h1>
+            <p className="showcase-copy">
+              Every visitor arrives with a different curiosity. Ask in text or by voice and the
+              guide will shape a live route, then hand it over to your phone when you are ready to
+              walk.
+            </p>
+            <div className="showcase-pill-row">
+              <span className="showcase-pill showcase-pill--pink">Personal route</span>
+              <span className="showcase-pill showcase-pill--blue">Live map</span>
+              <span className="showcase-pill showcase-pill--green">Phone handoff</span>
+            </div>
+          </div>
+        </header>
+
+        <main className="showcase-layout">
+          <section className="showcase-stream">
+            <div className="showcase-stream__section">
+              <p className="showcase-section-label">
+                <span className="showcase-section-label__dot" aria-hidden="true" />
+                Ask the guide
+              </p>
+
+              <form className="showcase-composer" onSubmit={onSubmit}>
+                <p className="showcase-composer__hint">
+                  Type a place, a theme, or the kind of visit you want. The same input area also
+                  works with voice, so the experience stays direct and calm.
+                </p>
+
+                <div className="showcase-composer__field">
+                  <textarea
+                    id="guide-input"
+                    className="showcase-composer__textarea"
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    rows={4}
+                    placeholder="For example: How do I get to the library? / I want to explore AI and robotics / Show my family the engineering area"
+                    disabled={loading}
+                  />
+
+                  <div className="showcase-composer__toolbar">
+                    <div className="showcase-chip-row" aria-label="Suggested prompts">
+                      {starterPrompts.map((prompt) => (
+                        <button
+                          key={prompt}
+                          className="showcase-chip"
+                          type="button"
+                          onClick={() => {
+                            setInput(prompt);
+                            void runQuery(prompt).catch(() => undefined);
+                          }}
+                          disabled={loading}
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="showcase-actions">
+                      <button className="showcase-button showcase-button--primary" type="submit" disabled={loading || !input.trim()}>
+                        {loading ? "Planning route…" : "Generate route"}
+                      </button>
+                      <button
+                        className={`showcase-button showcase-button--mic ${voice.isActive ? "showcase-button--mic-active" : ""}`}
+                        type="button"
+                        onClick={() => void voice.startOrStop()}
+                        disabled={loading && !voice.isActive}
+                        aria-label={voice.isActive ? "Stop voice dialogue" : "Start voice dialogue"}
+                      >
+                        <MicGlyph />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="showcase-assistant-status">
+                  <span className="showcase-assistant-status__label">
+                    {voicePhaseLabel(voice.phase)}
+                  </span>
+                  <p>{voice.lastTranscript ? `“${voice.lastTranscript}”` : voice.statusText}</p>
+                  {voice.errorText && <span className="showcase-assistant-status__error">{voice.errorText}</span>}
+                </div>
+              </form>
             </div>
 
-            {loading && (
-              <div className="loading-state" aria-live="polite">
-                <div className="loading-line loading-line--wide" />
-                <div className="loading-line" />
-                <div className="loading-line loading-line--short" />
-                <div className="loading-card-row">
-                  <div className="loading-card" />
-                  <div className="loading-card" />
-                  <div className="loading-card" />
+            <div className="showcase-stream__section">
+              {loading && (
+                <div className="showcase-loading">
+                  <p className="showcase-section-label">Understanding your route</p>
+                  <div className="showcase-skeleton showcase-skeleton--wide" />
+                  <div className="showcase-skeleton showcase-skeleton--mid" />
+                  <div className="showcase-skeleton showcase-skeleton--panel" />
                 </div>
-              </div>
-            )}
+              )}
 
-            {!loading && !result && !error && (
-              <div className="empty-state">
-                <p className="empty-state__lead">
-                  The map will stay visible while the guide prepares a route for you.
-                </p>
-                <div className="feature-grid">
-                  <article className="feature-card">
-                    <h4>Ask naturally</h4>
-                    <p>Type a place, a topic, or the kind of experience you want on open day.</p>
-                  </article>
-                  <article className="feature-card">
-                    <h4>See the route</h4>
-                    <p>The recommended path, key stops, and next move will appear on the map.</p>
-                  </article>
-                  <article className="feature-card">
-                    <h4>Continue on phone</h4>
-                    <p>Scan a QR code only when you want to take the route with you.</p>
-                  </article>
+              {!loading && error && (
+                <div className="showcase-result-card showcase-result-card--error" role="alert">
+                  <p className="showcase-section-label">Guide response</p>
+                  <h3>Something interrupted the route</h3>
+                  <p>{error}</p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {!loading && error && (
-              <div className="message-card message-card--error" role="alert">
-                <h4>Route unavailable right now</h4>
-                <p>{error}</p>
-              </div>
-            )}
-
-            {!loading && result && (
-              <div className="result-body">
-                <p className="overview-text">{overviewText}</p>
-
-                {stopCount > 0 ? (
-                  <>
-                    <div className="metric-row">
-                      <div className="metric-card">
-                        <span className="metric-card__label">Estimated Walk</span>
-                        <strong>{metrics.minutes} min</strong>
-                      </div>
-                      <div className="metric-card">
-                        <span className="metric-card__label">Recommended Stops</span>
-                        <strong>{stopCount}</strong>
-                      </div>
-                      <div className="metric-card">
-                        <span className="metric-card__label">Best For</span>
-                        <strong>{audienceLabel(result.intent)}</strong>
-                      </div>
+              {!loading && !result && !error && (
+                <div className="showcase-result-card">
+                  <div className="showcase-route-head">
+                    <div>
+                      <p className="showcase-section-label">Your route will appear here</p>
+                      <h3>{streamHeading}</h3>
                     </div>
+                    <span className="showcase-intent-pill">Ready</span>
+                  </div>
+                  <p className="showcase-overview">
+                    Start with one thought and the assistant will turn it into a route with pace,
+                    stops, and map context that feels personal instead of generic.
+                  </p>
+                  <div className="showcase-note-row">
+                    <span>Text or voice</span>
+                    <span>Personalized sequence</span>
+                    <span>Mobile continuation</span>
+                  </div>
+                </div>
+              )}
 
-                    <div className="next-step-card">
-                      <p className="next-step-card__eyebrow">Next Step</p>
-                      <h4>
-                        Head toward {topStop?.name_zh}
-                        {topStopMeta ? ` · ${topStopMeta.area}` : ""}
-                      </h4>
-                      <p>
-                        Start from the guide station and follow the highlighted line. The first stop
-                        sets the tone for this route and keeps the walk easy to follow.
-                      </p>
+              {!loading && result && (
+                <div className="showcase-result-card">
+                  <div className="showcase-route-head">
+                    <div>
+                      <p className="showcase-section-label">Your open day route</p>
+                      <h3>{routeTagline}</h3>
                     </div>
+                    <span className="showcase-intent-pill">{intentLabel(result.intent)}</span>
+                  </div>
 
-                    <div className="stop-list">
-                      {result.places.map((stop, index) => {
-                        const meta = getPoiByPlaceId(stop.id);
-                        return (
-                          <article className="stop-card" key={stop.id}>
-                            <div className="stop-card__index">{index + 1}</div>
-                            <div>
-                              <div className="stop-card__title-row">
+                  <p className="showcase-overview">{overviewText}</p>
+
+                  {stopCount > 0 ? (
+                    <>
+                      <div className="showcase-metrics">
+                        <div className="showcase-metric">
+                          <span>Estimated walk</span>
+                          <strong>{metrics.minutes} min</strong>
+                        </div>
+                        <div className="showcase-metric">
+                          <span>Recommended stops</span>
+                          <strong>{stopCount}</strong>
+                        </div>
+                        <div className="showcase-metric">
+                          <span>Best for</span>
+                          <strong>{audienceLabel(result.intent)}</strong>
+                        </div>
+                      </div>
+
+                      <div className="showcase-stop-list">
+                        {result.places.map((stop, index) => {
+                          const meta = getPoiByPlaceId(stop.id);
+                          return (
+                            <article className="showcase-stop" key={stop.id}>
+                              <span className="showcase-stop__idx">{index + 1}</span>
+                              <div className="showcase-stop__body">
                                 <h4>{stop.name_zh}</h4>
-                                {meta && <span>{meta.area}</span>}
+                                <p>{stop.blurb}</p>
+                                {meta && <span className="showcase-stop__meta">{meta.area}</span>}
                               </div>
-                              <p>{stop.blurb}</p>
-                              {meta && <p className="stop-card__relation">{meta.relation}</p>}
-                            </div>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : (
-                  <div className="message-card message-card--soft">
-                    <h4>Let’s narrow it down</h4>
-                    <p>
-                      Try naming a destination, a subject area, or the kind of campus experience
-                      you want to see. The guide can then generate a clearer route.
-                    </p>
-                    <div className="clarify-row">
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="showcase-note-row">
                       {starterPrompts.slice(0, 3).map((prompt) => (
                         <button
                           key={prompt}
-                          className="suggestion-chip suggestion-chip--soft"
+                          className="showcase-chip"
                           type="button"
                           onClick={() => {
                             setInput(prompt);
@@ -309,106 +318,76 @@ export function App() {
                         </button>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              )}
+            </div>
+
+            {showTransfer && (
+              <div className={`showcase-handoff ${qrVisible ? "showcase-handoff--visible" : ""}`}>
+                <div className="showcase-handoff__copy">
+                  <p className="showcase-section-label">Continue on your phone</p>
+                  <h4>Walk with it</h4>
+                  <p>
+                    Bring the route, the stop order, and the live map with you while you move
+                    across campus.
+                  </p>
+                  {!qrVisible ? (
+                    <button
+                      className="showcase-button showcase-button--secondary"
+                      type="button"
+                      onClick={() => setQrVisible(true)}
+                    >
+                      Reveal QR code
+                    </button>
+                  ) : (
+                    <>
+                      <span className="showcase-handoff__benefit">
+                        Scan to continue seamlessly on your phone
+                      </span>
+                      {result?.mobile_url && <p className="showcase-handoff__link">{result.mobile_url}</p>}
+                    </>
+                  )}
+                </div>
+
+                <div className="showcase-qr">
+                  {qrVisible && result?.qr_data_url ? (
+                    <img src={result.qr_data_url} alt="Route QR code" />
+                  ) : (
+                    <div className="showcase-qr__placeholder">
+                      <span>QR</span>
+                      <p>Your route will be ready to carry.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </section>
 
-          {showTransfer && (
-            <section className="panel panel--transfer">
-              {!qrVisible ? (
-                <div className="transfer-cta">
-                  <div>
-                    <p className="panel__eyebrow">Continue On Mobile</p>
-                    <h3>Take this route on your phone</h3>
-                    <p>
-                      Generate a QR code when you want to carry the route, stop list, and map view
-                      with you.
-                    </p>
-                  </div>
-                  <button className="primary-button" type="button" onClick={() => setQrVisible(true)}>
-                    Take This Route on Your Phone
-                  </button>
-                </div>
-              ) : (
-                <div className="qr-panel">
-                  <div>
-                    <p className="panel__eyebrow">QR Ready</p>
-                    <h3>Scan to continue on your phone</h3>
-                    <p>Take this route with you and explore campus at your own pace.</p>
-                    {result?.mobile_url && (
-                      <p className="micro-note micro-note--inline">{result.mobile_url}</p>
-                    )}
-                  </div>
-                  {result?.qr_data_url ? (
-                    <div className="qr-box">
-                      <img src={result.qr_data_url} alt="Route QR code" className="qr-box__image" />
-                    </div>
-                  ) : (
-                    <div className="message-card message-card--soft">
-                      <h4>QR image not available</h4>
-                      <p>The mobile link is still ready. Open it directly if needed.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
-        </section>
-
-        <section className="panel panel--map">
-          <div className="map-panel__header">
-            <div>
-              <p className="panel__eyebrow">Live Campus Map</p>
-              <h2 className="panel__title">Map first, route second, details alongside</h2>
-            </div>
-            <div className="map-legend">
-              <span>
-                <i className="legend-swatch legend-swatch--station" />
-                Guide Station
-              </span>
-              <span>
-                <i className="legend-swatch legend-swatch--route" />
-                Suggested Route
-              </span>
-              <span>
-                <i className="legend-swatch legend-swatch--stop" />
-                Key Stops
-              </span>
-            </div>
-          </div>
-
-          <GuideMap
-            places={result?.places ?? []}
-            routePolyline={result?.route_polyline ?? []}
-            mode={loading ? "loading" : result ? "result" : "initial"}
-          />
-
-          <div className="map-panel__footer">
-            <div>
-              <p className="map-panel__footer-label">Route Summary</p>
-              <p>{stopCount > 0 ? overviewText : "The route will appear here after a request."}</p>
-            </div>
-            <div>
-              <p className="map-panel__footer-label">Current Focus</p>
+          <section className="showcase-mapcard">
+            <div className="showcase-mapcard__head">
+              <h2>Live route map</h2>
               <p>
                 {stopCount > 0
-                  ? `${stopCount} stops · starting with ${result?.places[0].name_zh}`
-                  : "Open Day campus overview"}
+                  ? `Your route begins at the guide station and first points you toward ${result?.places[0].name_zh}.`
+                  : "The campus map stays visible below, so the route can arrive the moment the guide understands your request."}
               </p>
             </div>
-          </div>
-        </section>
-      </main>
 
-      <footer className="page-footer">
-        <span>Discover</span>
-        <span>Route</span>
-        <span>Open Day</span>
-        <span>AI Guide</span>
-        <span>University of Nottingham Ningbo China</span>
-      </footer>
+            <GuideMap
+              places={result?.places ?? []}
+              routePolyline={result?.route_polyline ?? []}
+              mode={loading ? "loading" : result ? "result" : "initial"}
+            />
+
+            <div className="showcase-mapcard__foot">
+              {topStop
+                ? `First stop: ${topStop.name_zh}${topStopMeta ? ` · ${topStopMeta.area}` : ""}. Follow the highlighted line and continue on your phone if you want to keep the route with you.`
+                : "Once a route is generated, the highlighted line and numbered stops will appear here."}
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
@@ -435,4 +414,15 @@ function voicePhaseLabel(phase: ReturnType<typeof useVoiceGuide>["phase"]): stri
   if (phase === "speaking_result") return "Speaking";
   if (phase === "error") return "Try Again";
   return "Idle";
+}
+
+function MicGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
+      <path d="M12 16.8v3.2" strokeLinecap="round" />
+      <path d="M9.2 20.3h5.6" strokeLinecap="round" />
+      <rect x="9" y="4.2" width="6" height="10.4" rx="3" />
+      <path d="M6.8 10.7a5.2 5.2 0 0 0 10.4 0" strokeLinecap="round" />
+    </svg>
+  );
 }

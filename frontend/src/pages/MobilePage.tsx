@@ -5,14 +5,13 @@ import { GuideMap } from "../GuideMap";
 import { BottomTabBar, type MobileTab } from "../components/BottomTabBar";
 import { MapControls } from "../components/MapControls";
 import { PlaceCard } from "../components/PlaceCard";
-import { SearchBar } from "../components/SearchBar";
 import { TopBar } from "../components/TopBar";
-import { getPoiByPlaceId, getRouteMetrics, guideStation, polylineDistance, resolvePlacePosition } from "../campusMap";
+import { getPoiByPlaceId, getRouteMetrics, guideStation, mapSize, polylineDistance, resolvePlacePosition } from "../campusMap";
 import { ActivityPage, type ActivityFilter } from "./ActivityPage";
 import { NewsPage } from "./NewsPage";
 
-const INITIAL_ZOOM = 1.65;
-const MIN_ZOOM = 1.15;
+const INITIAL_ZOOM = 1.9;
+const MIN_ZOOM = 1.3;
 const MAX_ZOOM = 2.4;
 
 export function MobilePage() {
@@ -23,7 +22,6 @@ export function MobilePage() {
   const [activeTab, setActiveTab] = useState<MobileTab>("map");
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [isCardOpen, setIsCardOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const [newsQuery, setNewsQuery] = useState("");
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>("today");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -134,17 +132,21 @@ export function MobilePage() {
               zoom={zoom}
               viewportCenter={viewportCenter ?? userLocation}
               userLocation={userLocation}
+              onViewportPan={(deltaX, deltaY, bounds) => {
+                setViewportCenter((current) => {
+                  const base = current ?? userLocation;
+                  const nextX = base.x - (deltaX / bounds.width) * mapSize.width / zoom;
+                  const nextY = base.y - (deltaY / bounds.height) * mapSize.height / zoom;
+                  return {
+                    x: clamp(nextX, 0, mapSize.width),
+                    y: clamp(nextY, 0, mapSize.height),
+                  };
+                });
+              }}
             />
 
             <div className="mobile-map-screen__top">
               <TopBar />
-              <SearchBar
-                value={searchValue}
-                onChange={setSearchValue}
-                onSubmit={() => void submitGuideRequest(searchValue)}
-                onVoiceClick={() => undefined}
-                isLoading={isSubmitting}
-              />
               <div className="mobile-route-banner mobile-glass">
                 <div className="mobile-route-banner__copy">
                   <span className="mobile-route-banner__eyebrow">{intentLabel(data.intent)}</span>
@@ -166,7 +168,7 @@ export function MobilePage() {
               canZoomOut={zoom > MIN_ZOOM}
             />
 
-            {selectedPlacePresentation && (
+            {selectedPlacePresentation && isCardOpen && (
               <PlaceCard
                 title={selectedPlacePresentation.title}
                 description={selectedPlacePresentation.description}
@@ -175,9 +177,6 @@ export function MobilePage() {
                 isOpen={isCardOpen}
                 onClose={() => setIsCardOpen(false)}
                 onGo={focusSelectedPlace}
-                onAddToRoute={() =>
-                  void submitGuideRequest(`Plan a route that includes ${selectedPlacePresentation.title}.`)
-                }
               />
             )}
           </div>
@@ -217,7 +216,6 @@ export function MobilePage() {
     try {
       const response = await postGuide(message);
       applyGuideSession(response);
-      setSearchValue(message);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -228,7 +226,7 @@ export function MobilePage() {
   function applyGuideSession(session: GuideSession) {
     setData(session);
     setActiveTab("map");
-    setSelectedPlaceId(session.places[0]?.id ?? null);
+    setSelectedPlaceId(null);
     setIsCardOpen(false);
     setViewportCenter(getUserLocationForSession(session));
     setZoom(INITIAL_ZOOM);
@@ -273,6 +271,10 @@ function trimCopy(text: string, maxLength: number) {
 
 function roundZoom(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function promptForActivityFilter(filter: ActivityFilter) {

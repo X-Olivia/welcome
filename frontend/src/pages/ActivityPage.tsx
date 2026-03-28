@@ -36,8 +36,35 @@ const activityContent: Record<ActivityFilter, ActivityItem[]> = {
       location: "Science Block C",
       state: "done",
     },
+    {
+      time: "13:00",
+      end: "14:00",
+      title: "Faculty Programme Talks",
+      description:
+        "Subject introductions from academic staff across schools, with time for questions on modules and assessment.",
+      location: "Teaching Building A",
+      state: "add",
+    },
+    {
+      time: "14:30",
+      end: "15:30",
+      title: "Sports & Societies Fair",
+      description:
+        "Meet club captains, try taster activities, and learn how to balance study with teams and hobbies.",
+      location: "Sports Centre",
+      state: "add",
+    },
   ],
   today: [
+    {
+      time: "09:00",
+      end: "10:00",
+      title: "Registration & Welcome Coffee",
+      description:
+        "Collect your programme, meet student ambassadors, and grab a drink before the main sessions.",
+      location: "Main Reception",
+      state: "done",
+    },
     {
       time: "11:00",
       end: "12:00",
@@ -48,6 +75,15 @@ const activityContent: Record<ActivityFilter, ActivityItem[]> = {
       state: "add",
     },
     {
+      time: "12:15",
+      end: "13:00",
+      title: "Campus Dining Taster",
+      description:
+        "Sample menus, learn about dietary options, and how meal plans fit into daily student life.",
+      location: "Portland Building",
+      state: "add",
+    },
+    {
       time: "13:30",
       end: "14:20",
       title: "Campus Life Walkthrough",
@@ -55,6 +91,24 @@ const activityContent: Record<ActivityFilter, ActivityItem[]> = {
         "A guided introduction to study spaces, food spots, and the rhythm of student life at UNNC.",
       location: "The Hub",
       state: "done",
+    },
+    {
+      time: "14:45",
+      end: "15:30",
+      title: "International Student Panel",
+      description:
+        "Hear from current students about adapting to life in Ningbo, visas, and cross-cultural support.",
+      location: "Lecture Theatre 1",
+      state: "add",
+    },
+    {
+      time: "15:45",
+      end: "16:30",
+      title: "Library & Study Skills Intro",
+      description:
+        "A quick tour of study zones, borrowing, and digital resources you will use from week one.",
+      location: "Hallward Library",
+      state: "add",
     },
   ],
   upcoming: [
@@ -74,6 +128,24 @@ const activityContent: Record<ActivityFilter, ActivityItem[]> = {
       description:
         "A light campus session focused on entrepreneurship, maker culture, and future-facing projects.",
       location: "IEB",
+      state: "add",
+    },
+    {
+      time: "17:15",
+      end: "18:00",
+      title: "Parents & Supporters Session",
+      description:
+        "A relaxed overview of accommodation, safety, and how families can support students through the transition.",
+      location: "The Hub",
+      state: "add",
+    },
+    {
+      time: "18:30",
+      end: "19:15",
+      title: "Evening Campus Stroll",
+      description:
+        "An optional walk through lit walkways and key buildings for those staying into the evening.",
+      location: "Central Quad",
       state: "add",
     },
   ],

@@ -20,6 +20,7 @@ type GuideMapProps = {
   viewportCenter?: MapPoint | null;
   userLocation?: MapPoint | null;
   className?: string;
+  onViewportPan?: (deltaX: number, deltaY: number, bounds: DOMRect) => void;
 };
 
 type VisibleStop = PlaceCard & { x: number; y: number };
@@ -43,6 +44,7 @@ export function GuideMap({
   viewportCenter,
   userLocation,
   className,
+  onViewportPan,
 }: GuideMapProps) {
   const featuredPois = getFeaturedPois();
   const visibleStops: VisibleStop[] =
@@ -75,12 +77,45 @@ export function GuideMap({
     x: mapSize.width / 2,
     y: mapSize.height / 2,
   };
-  const translateX = 50 - (effectiveCenter.x / mapSize.width) * safeScale * 100;
-  const translateY = 50 - (effectiveCenter.y / mapSize.height) * safeScale * 100;
+  const translateX = (0.5 - effectiveCenter.x / mapSize.width) * 100 * safeScale;
+  const translateY = (0.5 - effectiveCenter.y / mapSize.height) * 100 * safeScale;
 
   return (
     <div className={`guide-map ${hideChrome ? "guide-map--minimal" : ""} ${className ?? ""}`.trim()}>
-      <div className="guide-map__canvas">
+      <div
+        className="guide-map__canvas"
+        onPointerDown={(event) => {
+          const source = event.target as Element | null;
+          if (source?.closest(".guide-map__marker")) {
+            return;
+          }
+
+          const target = event.currentTarget;
+          let lastX = event.clientX;
+          let lastY = event.clientY;
+          const bounds = target.getBoundingClientRect();
+          target.setPointerCapture(event.pointerId);
+
+          const handleMove = (moveEvent: PointerEvent) => {
+            const deltaX = moveEvent.clientX - lastX;
+            const deltaY = moveEvent.clientY - lastY;
+            lastX = moveEvent.clientX;
+            lastY = moveEvent.clientY;
+            onViewportPan?.(deltaX, deltaY, bounds);
+          };
+
+          const handleEnd = () => {
+            target.releasePointerCapture(event.pointerId);
+            target.removeEventListener("pointermove", handleMove);
+            target.removeEventListener("pointerup", handleEnd);
+            target.removeEventListener("pointercancel", handleEnd);
+          };
+
+          target.addEventListener("pointermove", handleMove);
+          target.addEventListener("pointerup", handleEnd);
+          target.addEventListener("pointercancel", handleEnd);
+        }}
+      >
         {!hideChrome && (
           <div className="guide-map__badge">
             {visibleStops.length > 0 && routePolyline.length > 0
@@ -101,7 +136,7 @@ export function GuideMap({
         <div
           className="guide-map__scene"
           style={{
-            transform: `translate(${translateX}%, ${translateY}%) scale(${safeScale})`,
+            transform: `translate(calc(-50% + ${translateX}%), calc(-50% + ${translateY}%)) scale(${safeScale})`,
           }}
         >
           <img src={mapAsset} alt="UNNC campus map" />
@@ -180,12 +215,18 @@ export function GuideMap({
               const isActive = activePlaceId === stop.id;
               const meta = getPoiByPlaceId(stop.id);
               return (
-                <g
-                  className="guide-map__marker"
-                  key={stop.id}
-                  onClick={() => onMarkerSelect?.(stop.id)}
-                  role={onMarkerSelect ? "button" : undefined}
-                >
+              <g
+                className="guide-map__marker"
+                key={stop.id}
+                onPointerUp={(event) => {
+                  event.stopPropagation();
+                  onMarkerSelect?.(stop.id);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                }}
+                role={onMarkerSelect ? "button" : undefined}
+              >
                   <circle
                     cx={stop.x}
                     cy={stop.y}
