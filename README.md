@@ -285,5 +285,3 @@ SO-ARM101 Leader 录制 · Follower 回放 · HTTP daemon · OpenCV 人脸跟踪
 - 🦾 机械臂驱动详解：[arm_driver/so101-arm-driver.md](arm_driver/so101-arm-driver.md)
 
 ---
-
-本 README 用于项目介绍与开发引导。若文档与代码行为不一致，以代码为准。
