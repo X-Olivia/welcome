@@ -1,6 +1,6 @@
 import { FormEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { GuideMap } from "./GuideMap";
-import { type GuideResponse, postGuide } from "./api";
+import { type GuideResponse, type Intent, type RoutePlanResponse, postGuide, postMultiRoute, postRoute } from "./api";
 import { getAllCampusPois, getPoiByPlaceId, getRouteMetrics, polylineDistance } from "./campusMap";
 import { useVoiceGuide } from "./voice/useVoiceGuide";
 
@@ -9,6 +9,16 @@ const starterPrompts = [
   "I want to explore AI and robotics.",
   "I want to see student life and food spots.",
 ];
+
+const starterPromptRoutes: Record<string, { type: "route"; destination: string } | { type: "multi"; waypoints: string[]; mode?: Intent }> = {
+  "How do I get to the library?": { type: "route", destination: "library" },
+  "I want to explore AI and robotics.": { type: "multi", waypoints: ["pmb", "nicc", "ieb"], mode: "tour" },
+  "I want to see student life and food spots.": {
+    type: "multi",
+    waypoints: ["library", "hub", "student_canteen", "residential_hub"],
+    mode: "tour",
+  },
+};
 
 const marqueeItems = [
   "Open Day",
@@ -82,6 +92,37 @@ export function App() {
       const data = await postGuide(text);
       setResult(data);
       setInput(text);
+      return data;
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : String(err);
+      setError(messageText);
+      throw err instanceof Error ? err : new Error(messageText);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function runStarterPrompt(message: string): Promise<GuideResponse> {
+    const preset = starterPromptRoutes[message];
+    if (!preset) {
+      return runQuery(message);
+    }
+
+    setLoading(true);
+    setError(null);
+    setQrVisible(false);
+    setSelectedPlaceId(null);
+
+    try {
+      const routeRequest =
+        preset.type === "route"
+          ? postRoute(preset.destination)
+          : postMultiRoute(preset.waypoints, preset.mode ?? "tour");
+
+      const [routeData] = await Promise.all([routeRequest, wait(650)]);
+      const data = toGuideResponse(routeData);
+      setResult(data);
+      setInput(message);
       return data;
     } catch (err) {
       const messageText = err instanceof Error ? err.message : String(err);
@@ -262,7 +303,7 @@ export function App() {
                           type="button"
                           onClick={() => {
                             setInput(prompt);
-                            void runQuery(prompt).catch(() => undefined);
+                            void runStarterPrompt(prompt).catch(() => undefined);
                           }}
                           disabled={loading}
                         >
@@ -371,7 +412,7 @@ export function App() {
                             type="button"
                             onClick={() => {
                               setInput(prompt);
-                              void runQuery(prompt).catch(() => undefined);
+                              void runStarterPrompt(prompt).catch(() => undefined);
                             }}
                           >
                             {prompt}
@@ -522,6 +563,24 @@ function voicePhaseLabel(phase: ReturnType<typeof useVoiceGuide>["phase"]): stri
   if (phase === "speaking_result") return "Speaking";
   if (phase === "error") return "Try Again";
   return "Idle";
+}
+
+function toGuideResponse(route: RoutePlanResponse): GuideResponse {
+  return {
+    intent: route.mode,
+    reply_zh: route.summary,
+    arm_action: route.arm_action,
+    places: route.waypoints,
+    route_summary_zh: route.summary,
+    route_polyline: route.path,
+    route_distance_px: route.route_distance_px,
+    mobile_url: null,
+    qr_data_url: null,
+  };
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function MicGlyph() {
