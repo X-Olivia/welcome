@@ -1,4 +1,5 @@
 import { FormEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import { GuideMap } from "./GuideMap";
 import { type GuideResponse, type Intent, type RoutePlanResponse, postGuide, postMultiRoute, postRoute } from "./api";
 import { getAllCampusPois, getPoiByPlaceId, getRouteMetrics, polylineDistance } from "./campusMap";
@@ -120,7 +121,7 @@ export function App() {
           : postMultiRoute(preset.waypoints, preset.mode ?? "tour");
 
       const [routeData] = await Promise.all([routeRequest, wait(650)]);
-      const data = toGuideResponse(routeData);
+      const data = await toGuideResponse(routeData);
       setResult(data);
       setInput(message);
       return data;
@@ -565,7 +566,8 @@ function voicePhaseLabel(phase: ReturnType<typeof useVoiceGuide>["phase"]): stri
   return "Idle";
 }
 
-function toGuideResponse(route: RoutePlanResponse): GuideResponse {
+async function toGuideResponse(route: RoutePlanResponse): Promise<GuideResponse> {
+  const qrDataUrl = route.share_url ? await generateQrDataUrl(route.share_url) : null;
   return {
     intent: route.mode,
     reply_zh: route.summary,
@@ -574,13 +576,25 @@ function toGuideResponse(route: RoutePlanResponse): GuideResponse {
     route_summary_zh: route.summary,
     route_polyline: route.path,
     route_distance_px: route.route_distance_px,
-    mobile_url: null,
-    qr_data_url: null,
+    mobile_url: route.share_url,
+    qr_data_url: qrDataUrl,
   };
 }
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function generateQrDataUrl(url: string): Promise<string | null> {
+  try {
+    return await QRCode.toDataURL(url, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: 384,
+    });
+  } catch {
+    return null;
+  }
 }
 
 function MicGlyph() {
