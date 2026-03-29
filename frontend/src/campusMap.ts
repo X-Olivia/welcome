@@ -38,6 +38,7 @@ function readablePointName(id: string): string {
 function areaForPoint(id: string): string {
   if (/gate/i.test(id)) return "Campus entrance";
   if (/library/i.test(id)) return "Central academic core";
+  if (/pmb|yfj|yang fujia|ieb|iamet|nicc|db|new audi/i.test(id)) return "Engineering and innovation";
   if (/canteen|hub|residence|villa|hotel|apartments|space/i.test(id)) return "Student life and living";
   if (/sports|health|wellbeing/i.test(id)) return "Sports and wellbeing";
   if (/museum|admission|recruitment/i.test(id)) return "Visitor information";
@@ -99,6 +100,26 @@ const displayPois: Record<string, DisplayPoi> = {
     blurb: "A practical stop for engineering, design, and technical learning contexts.",
     pointId: "IEB (30)",
   },
+  pmb: {
+    id: "pmb",
+    name: "Portland Building (PMB)",
+    area: "Engineering and innovation",
+    description:
+      "PMB is one of the clearest entry points into the engineering side of campus, with teaching and project spaces that help visitors understand how technical programmes are taught in practice.",
+    relation: "A strong anchor for engineering, STEM, and applied-learning routes.",
+    blurb: "A useful first stop for visitors exploring engineering, design, and technical study spaces.",
+    pointId: "PMB (2)",
+  },
+  yang_fujia: {
+    id: "yang_fujia",
+    name: "YANG Fujia Building",
+    area: "Engineering and innovation",
+    description:
+      "YANG Fujia Building sits close to the academic core and works well as a bridge between central teaching spaces and the engineering-focused southern cluster.",
+    relation: "Useful in routes that connect academic atmosphere with engineering exploration.",
+    blurb: "A central stop that helps connect core academic spaces with the wider engineering route.",
+    pointId: "YANG Fujia (3)",
+  },
   innovation: {
     id: "innovation",
     name: "Innovation Centre",
@@ -108,6 +129,56 @@ const displayPois: Record<string, DisplayPoi> = {
     relation: "Strong match for AI, robotics, innovation, and project showcases.",
     blurb: "A good place to connect robotics, innovation culture, and applied AI topics.",
     pointId: "NICC (26)",
+  },
+  nicc: {
+    id: "nicc",
+    name: "NICC",
+    area: "Engineering and innovation",
+    description:
+      "NICC is a strong showcase stop for innovation projects, interdisciplinary making, and the more future-facing side of the campus experience.",
+    relation: "Best suited to AI, robotics, innovation, and entrepreneurship-themed routes.",
+    blurb: "A strong stop for visitors interested in innovation culture, robotics, and applied project work.",
+    pointId: "NICC (26)",
+  },
+  db: {
+    id: "db",
+    name: "DB Building",
+    area: "Engineering and innovation",
+    description:
+      "DB Building extends the southern teaching cluster and helps visitors see that engineering and technical learning happen across multiple connected spaces rather than in a single landmark.",
+    relation: "Useful as a supporting stop in broader engineering and innovation routes.",
+    blurb: "Part of the wider southern engineering cluster and useful in multi-stop technical tours.",
+    pointId: "DB (24)",
+  },
+  new_audi: {
+    id: "new_audi",
+    name: "New Audi",
+    area: "Engineering and innovation",
+    description:
+      "New Audi often works as an event-facing support stop near the southern cluster, adding presentation and showcase context to technical or innovation routes.",
+    relation: "Useful when a route blends technical exploration with talks, demos, or event-based programming.",
+    blurb: "A supporting stop that helps connect engineering routes with talks, demos, and showcase activity.",
+    pointId: "New Audi (25)",
+  },
+  iamet: {
+    id: "iamet",
+    name: "IAMET",
+    area: "Engineering and innovation",
+    description:
+      "IAMET sits within the southern engineering zone and is well suited to routes focused on manufacturing, applied engineering, and practice-oriented technical learning.",
+    relation: "A strong fit for engineering, making, manufacturing, and applied-technology themes.",
+    blurb: "A practical stop for visitors interested in engineering application, making, and technical practice.",
+    pointId: "IAMET (29)",
+  },
+  ieb: {
+    id: "ieb",
+    name: "Innovation and Enterprise Building (IEB)",
+    area: "Engineering and innovation",
+    description:
+      "IEB is an important southern-cluster landmark for visitors interested in engineering, innovation, enterprise, and application-oriented project culture.",
+    relation: "A key stop in engineering, innovation, and project-based campus tours.",
+    blurb: "A major route node connecting engineering, innovation, and enterprise-focused campus experiences.",
+    pointId: "IEB (30)",
   },
   cafeteria: {
     id: "cafeteria",
