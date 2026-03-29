@@ -6,7 +6,14 @@ import { BottomTabBar, type MobileTab } from "../components/BottomTabBar";
 import { MapControls } from "../components/MapControls";
 import { PlaceCard } from "../components/PlaceCard";
 import { TopBar } from "../components/TopBar";
-import { getPoiByPlaceId, getRouteMetrics, guideStation, mapSize, polylineDistance, resolvePlacePosition } from "../campusMap";
+import {
+  getPoiByPlaceId,
+  getRouteMetrics,
+  guideStation,
+  mapSize,
+  polylineDistance,
+  resolvePlacePosition,
+} from "../campusMap";
 import { ActivityPage, type ActivityFilter } from "./ActivityPage";
 import { NewsPage } from "./NewsPage";
 
@@ -63,23 +70,32 @@ export function MobilePage() {
     return { x: guideStation.x, y: guideStation.y };
   }, [data]);
 
-  const selectedPlace = useMemo(() => {
+  const selectedRoutePlace = useMemo(() => {
     if (!data || !selectedPlaceId) return null;
     return data.places.find((place) => place.id === selectedPlaceId) ?? null;
   }, [data, selectedPlaceId]);
 
+  const selectedPoi = useMemo(() => {
+    if (!selectedPlaceId) return null;
+    return getPoiByPlaceId(selectedPlaceId);
+  }, [selectedPlaceId]);
+
   const selectedPlacePresentation = useMemo(() => {
-    if (!selectedPlace) return null;
-    const meta = getPoiByPlaceId(selectedPlace.id);
+    if (!selectedPlaceId) return null;
+    const meta = selectedPoi;
+    const fallbackTitle = selectedRoutePlace?.name_zh ?? selectedPlaceId;
     return {
-      title: meta?.name ?? selectedPlace.name_zh,
-      description: meta?.description ?? selectedPlace.blurb,
+      title: meta?.name ?? fallbackTitle,
+      description:
+        meta?.description ??
+        selectedRoutePlace?.blurb ??
+        `${fallbackTitle} is available as a marked stop on the campus map.`,
       meta:
         meta?.relation ??
-        "This stop is part of the current route and can be used as a focus point on the map.",
+        "This stop is available on the map and can be explored as part of your campus visit.",
       tag: meta?.area ?? "Campus stop",
     };
-  }, [selectedPlace]);
+  }, [selectedPlaceId, selectedPoi, selectedRoutePlace]);
 
   const title = data?.places[0]?.name_zh || "Campus Route";
   const summary = (
@@ -233,11 +249,12 @@ export function MobilePage() {
   }
 
   function handleMarkerSelect(placeId: string) {
-    if (!data) return;
     setSelectedPlaceId(placeId);
     setIsCardOpen(true);
-    const place = data.places.find((item) => item.id === placeId);
-    const position = place ? resolvePlacePosition(place) : null;
+    const routePlace = data?.places.find((item) => item.id === placeId) ?? null;
+    const position = routePlace
+      ? resolvePlacePosition(routePlace)
+      : resolvePlacePosition({ id: placeId, name_zh: placeId, blurb: "" });
     if (position) {
       setViewportCenter(position);
       setZoom((current) => Math.max(current, 1.85));
@@ -245,8 +262,11 @@ export function MobilePage() {
   }
 
   function focusSelectedPlace() {
-    if (!selectedPlace) return;
-    const position = resolvePlacePosition(selectedPlace);
+    if (!selectedPlaceId) return;
+    const routePlace = data?.places.find((item) => item.id === selectedPlaceId) ?? null;
+    const position = routePlace
+      ? resolvePlacePosition(routePlace)
+      : resolvePlacePosition({ id: selectedPlaceId, name_zh: selectedPlaceId, blurb: "" });
     if (position) {
       setViewportCenter(position);
       setZoom((current) => Math.max(current, 1.95));

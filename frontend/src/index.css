@@ -1437,6 +1437,7 @@ img {
 
 .guide-map--mobile-immersive .guide-map__scene {
   width: 118%;
+  transition: none;
 }
 
 .guide-map__user-pulse {
