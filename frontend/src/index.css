@@ -3154,6 +3154,8 @@ img {
 
 .showcase-title-flank__art--right {
   right: -28px;
+  height: clamp(252px, 60vw, 640px);
+  max-width: min(94vw, 980px);
   object-position: right center;
 }
 

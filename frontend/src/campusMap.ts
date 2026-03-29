@@ -91,7 +91,7 @@ const displayPois: Record<string, DisplayPoi> = {
   },
   engineering: {
     id: "engineering",
-    name: "Engineering Zone",
+    name: "IEB",
     area: "South academic cluster",
     description:
       "This area represents the engineering and technical side of campus, making it useful for visitors curious about labs, making, and project-based learning.",

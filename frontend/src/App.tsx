@@ -44,7 +44,7 @@ export function App() {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight || 1;
       const mid = rect.top + rect.height * 0.42;
-      const t = (vh * 0.55 - mid) / (vh * 0.95);
+      const t = (vh * 0.55 - mid) / (vh * 0.58);
       setTitleFlankScroll(Math.min(1, Math.max(0, t)));
     };
 
@@ -196,7 +196,7 @@ export function App() {
                 height={1182}
                 decoding="async"
                 style={{
-                  transform: `translateY(-50%) translateX(${-28 + titleFlankScroll * -32}px) rotate(${-7 + titleFlankScroll * 13}deg)`,
+                  transform: `translateY(-50%) translateX(${-28 + titleFlankScroll * -42}px) rotate(${-7 + titleFlankScroll * 22}deg)`,
                 }}
               />
               <img
@@ -207,7 +207,7 @@ export function App() {
                 height={560}
                 decoding="async"
                 style={{
-                  transform: `translateY(-50%) translateX(${28 + titleFlankScroll * 32}px) rotate(${11 - titleFlankScroll * 13}deg)`,
+                  transform: `translateY(-50%) translateX(${28 + titleFlankScroll * 42}px) rotate(${11 - titleFlankScroll * 22}deg)`,
                 }}
               />
               <h1 className="showcase-title">

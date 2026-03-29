@@ -15,7 +15,8 @@ _MAP_DIR = Path(__file__).resolve().parents[2] / "map"
 _CENTERLINE_PATH = _MAP_DIR / "campus_marked_centerline_pixels.json"
 _POINTS_PATH = _MAP_DIR / "campus_points_full.json"
 
-_GUIDE_STATION_ID = "GATE 1"
+# Must match frontend `guideStation` in `frontend/src/campusMap.ts` (LocationMarker / AI guide icon).
+_GUIDE_STATION_ID = "IEB (30)"
 
 
 @lru_cache
