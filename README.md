@@ -1,16 +1,32 @@
+<p align="center">
+  <img src="img/example.png" alt="UNNC Open Day AI Guide" width="720" />
+</p>
 
+<h1 align="center">UNNC Open Day AI Guide</h1>
 
-# UNNC Open Day AI Guide
+<p align="center">
+  <strong>校园开放日 AI 导览系统 — 语言理解 · 路线规划 · 语音交互 · 机械臂联动</strong>
+</p>
 
-**校园开放日 AI 导览系统 — 语言理解 · 路线规划 · 语音交互 · 机械臂联动**
+<p align="center">
+  <a href="./README.md">🇨🇳 中文</a> | <a href="./README_EN.md">🌐 English</a>
+</p>
 
-[🇨🇳 中文](./README.md) | [🌐 English](./README_EN.md)
+<p align="center">
+  <img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Frontend-React_+_Vite-61DAFB?style=flat-square&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/NLU-OpenAI_GPT-412991?style=flat-square&logo=openai" alt="OpenAI" />
+  <img src="https://img.shields.io/badge/Robot-SO--ARM101-FF6F00?style=flat-square" alt="SO-ARM101" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT" />
+</p>
 
+<p align="center">
+  访客一句话，系统一条路，屏幕画出来，手臂指出去，手机带着走。
+</p>
 
-
-访客一句话，系统一条路，屏幕画出来，手臂指出去，手机带着走。
-
-[在线体验](https://welcome-hazel.vercel.app/) · [观看 Demo](https://youtu.be/x3Toh6sFrDE) · [产品截图](#-产品截图) · [快速开始](#-快速开始)
+<p align="center">
+  <a href="https://welcome-hazel.vercel.app/">在线体验</a> · <a href="https://youtu.be/x3Toh6sFrDE">观看 Demo</a> · <a href="#-产品截图">产品截图</a> · <a href="#-快速开始">快速开始</a>
+</p>
 
 ---
 
