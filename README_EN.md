@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/x3Toh6sFrDE">View Demo</a> · <a href="#-screenshots">Screenshots</a> · <a href="#-quick-start">Quick Start</a>
+  <a href="https://welcome-hazel.vercel.app/">Live Demo</a> · <a href="https://youtu.be/x3Toh6sFrDE">View Demo</a> · <a href="#-screenshots">Screenshots</a> · <a href="#-quick-start">Quick Start</a>
 </p>
 
 ---
