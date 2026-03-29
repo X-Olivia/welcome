@@ -1,0 +1,2 @@
+# Optional: face tracking script (arm_driver/face_track_follower.py)
+opencv-python>=4.8.0

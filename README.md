@@ -63,4 +63,5 @@ npm run dev -- --host 0.0.0.0
 
 **只有 follower、没有 leader** 也能做指向演示：程序直接下发关节目标（`send_action`）。Leader 用于遥操作与示教录制；无 leader 时可只做 follower 回放。
 
-逻辑动作枚举与 mock：`backend/app/services/arm.py`。路线首向 → 八方位示教回放：`route_arm_direction.py`、`arm_daemon_client.py` 与 `arm_driver/arm_daemon.py`（详见上文 README）。
+逻辑动作枚举与 mock：`backend/app/services/arm.py`。路线首向 → 八方位示教回放：`route_arm_direction.py`、`arm_daemon_client.py` 与 `arm_driver/arm_daemon.py`（详见上文 README）。  
+可选：**摄像头人脸居中** → `arm_driver/face_track_follower.py`（需安装 `arm_driver/requirements-opencv.txt`；不要与占用串口的 `arm_daemon` 同时运行）。

@@ -15,6 +15,7 @@
 | **连通性测试** | 小幅度转动 `shoulder_pan`，验证串口、标定与总线。 |
 | **HTTP 守护进程** | 本机监听端口，按 `action_key` 播放录制中的单段动作；供 FastAPI 在路线生成后异步调用。 |
 | **Web 后端联动** | 路线折线首段方向映射为八个罗盘向的 `action_key`，通过 `ARM_DAEMON_URL` 通知守护进程（可选）。 |
+| **人脸居中跟踪** | OpenCV + Haar；EMA 平滑 + PD；竖直指令分配至 `shoulder_lift` / `elbow_flex` / `wrist_flex`，水平含 `shoulder_pan` 与小幅 `wrist_roll`（勿与 `arm_daemon` 同占串口）。 |
 
 ### 文件一览
 
@@ -24,6 +25,8 @@
 | `replay_engine.py` | 回放核心：读 JSON、`step_toward_target` 平滑逼近、`replay_one_action` 执行 keyframe/trajectory。 |
 | `replay_leader_poses.py` | CLI：在 Follower 上顺序播放整个录制文件。 |
 | `arm_daemon.py` | 常驻进程：`GET /health`、`POST /v1/play`，队列串行播放，独占串口。 |
+| `face_track_follower.py` | 摄像头人脸跟踪：多关节（pan/lift/elbow/wrist）视觉伺服使人脸居中（需 `requirements-opencv.txt`）。 |
+| `requirements-opencv.txt` | 可选依赖：`opencv-python`（人脸脚本用）。 |
 | `test_so101_motion.py` | Follower 小幅动作自检。 |
 | `__init__.py` | 包标记，便于 `arm_driver.*` 导入。 |
 
@@ -37,7 +40,11 @@
 1. （可选）`conda activate lerobot`，用 `record_leader_poses.py` 在 Leader 上录制并保存 JSON。  
 2. 将板子接到 **Follower**，完成 `lerobot-calibrate`（与 `--robot-id` 一致）。  
 3. 启动守护进程：`python arm_driver/arm_daemon.py`（可用 `ARM_DAEMON_DRY_RUN=1` 调试 HTTP）。  
-4. 启动后端并设置 `ARM_DAEMON_URL=http://127.0.0.1:8765`，前端生成路线后即可触发对应方向的示教动作。
+4. 启动后端并设置 `ARM_DAEMON_URL=http://127.0.0.1:8765`，前端生成路线后即可触发对应方向的示教动作。  
+5. （可选）**人脸跟踪**：先停掉 `arm_daemon`，再 `pip install -r arm_driver/requirements-opencv.txt`，执行  
+   `python arm_driver/face_track_follower.py --camera /dev/video0 --port /dev/ttyACM0`。
+   默认首次识别人脸会先回放 `greet` 动作，再继续跟踪；可用 `--no-greet-on-first-face` 关闭。
+   左右反加 `--invert-pan`；整条竖直链反加 `--invert-vertical`。
 
 环境变量与 API 细节见各脚本顶部 **module docstring**。
 
@@ -56,6 +63,7 @@ This package integrates the **SO-ARM101** arm (LeRobot `so101_leader` / `so101_f
 | **Smoke test** | Nudge `shoulder_pan` to verify USB bus, calibration, and torque. |
 | **HTTP daemon** | Local server: play one `action_key` at a time from the loaded recording; invoked by FastAPI after a route is planned. |
 | **Backend bridge** | Maps the first meaningful segment of the route polyline to an 8-way compass key (`point_north`, …) and `POST`s to the daemon when `ARM_DAEMON_URL` is set. |
+| **Face centering** | OpenCV + Haar; EMA + PD; vertical command split across `shoulder_lift`, `elbow_flex`, `wrist_flex`; horizontal uses `shoulder_pan` plus small `wrist_roll` (no serial sharing with `arm_daemon`). |
 
 ### File map
 
@@ -65,6 +73,8 @@ This package integrates the **SO-ARM101** arm (LeRobot `so101_leader` / `so101_f
 | `replay_engine.py` | Shared replay logic: load JSON, ramped `step_toward_target`, `replay_one_action` for `keyframe` / `trajectory` blocks. |
 | `replay_leader_poses.py` | CLI: play a full recording file on Follower in order. |
 | `arm_daemon.py` | Long-running process: `GET /health`, `POST /v1/play`, queued playback, single serial owner. |
+| `face_track_follower.py` | Camera face tracking: multi-joint servo (pan/lift/elbow/wrist) to center the face. |
+| `requirements-opencv.txt` | Optional: `opencv-python` for the face script. |
 | `test_so101_motion.py` | Minimal Follower motion sanity check. |
 | `__init__.py` | Package marker for `arm_driver.*` imports. |
 
@@ -78,7 +88,11 @@ This package integrates the **SO-ARM101** arm (LeRobot `so101_leader` / `so101_f
 1. (Optional) Record on Leader with `record_leader_poses.py`.  
 2. Move the board to **Follower**; run `lerobot-calibrate` matching `--robot-id`.  
 3. Start `python arm_driver/arm_daemon.py` (use `ARM_DAEMON_DRY_RUN=1` to test HTTP only).  
-4. Run the API with `ARM_DAEMON_URL=http://127.0.0.1:8765`; planning a route from the UI queues the matching directional pose.
+4. Run the API with `ARM_DAEMON_URL=http://127.0.0.1:8765`; planning a route from the UI queues the matching directional pose.  
+5. (Optional) **Face tracking**: stop `arm_daemon`, `pip install -r arm_driver/requirements-opencv.txt`, then  
+   `python arm_driver/face_track_follower.py --camera /dev/video0 --port /dev/ttyACM0`.
+   By default, the first stable face lock triggers one `greet` replay, then tracking resumes.
+   Use `--no-greet-on-first-face` to disable. Use `--invert-pan` / `--invert-vertical` if axes are reversed.
 
 Full env var and HTTP API lists are in each script’s **module docstring** (English in source).
 
@@ -88,6 +102,7 @@ Full env var and HTTP API lists are in each script’s **module docstring** (Eng
 
 - **Conda env** with LeRobot and Feetech stack (see project root `README.md`).  
 - **Linux**: serial permissions (`dialout` or `chmod` on `/dev/ttyACM*`).
+- **Face tracking**: `pip install -r arm_driver/requirements-opencv.txt` in the same env.
 
 ---
 

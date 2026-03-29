@@ -1,1 +1,1 @@
-"""SO-ARM101 utilities: record (leader), replay (follower), HTTP daemon, smoke test."""
+"""SO-ARM101 utilities: record, replay, HTTP daemon, face tracking, smoke test."""
