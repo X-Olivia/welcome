@@ -2,7 +2,7 @@
 """
 Local HTTP daemon: play one ``action_key`` from a fixed leader recording JSON.
 
-Invoked by the FastAPI app when ``ARM_DAEMON_URL`` is set (see ``arm_driver/README.md``).
+Invoked by the FastAPI app when ``ARM_DAEMON_URL`` is set (see ``arm_driver/so101-arm-driver.md``).
 
 Run (lerobot conda env)::
 

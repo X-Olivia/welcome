@@ -3,7 +3,7 @@
 Interactive recorder for the SO101 **Leader** arm (one control board + leader hardware).
 
 Writes a JSON file of joint keyframes / short trajectories for later playback on the **Follower**
-(see ``replay_leader_poses.py`` / ``arm_daemon.py`` and ``arm_driver/README.md``).
+(see ``replay_leader_poses.py`` / ``arm_daemon.py`` and ``arm_driver/so101-arm-driver.md``).
 
 Prerequisites:
   - USB connected to the **leader** board (not follower).
