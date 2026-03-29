@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="img/demo.mp4">View Demo</a> · <a href="#-screenshots">Screenshots</a> · <a href="#-quick-start">Quick Start</a>
+  <a href="https://bronze-stocking-bd4.notion.site/332664bfdad2806b8045d09fc30c7880">View Demo</a> · <a href="#-screenshots">Screenshots</a> · <a href="#-quick-start">Quick Start</a>
 </p>
 
 ---
@@ -286,4 +286,3 @@ From a product perspective, it can serve as: **a deployable spatial guidance sys
 ## 📚 Related Documentation
 
 - 🦾 Robotic arm driver guide: [arm_driver/so101-arm-driver.md](arm_driver/so101-arm-driver.md)
-

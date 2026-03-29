@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="img/demo.mp4">观看 Demo</a> · <a href="#-产品截图">产品截图</a> · <a href="#-快速开始">快速开始</a>
+  <a href="https://bronze-stocking-bd4.notion.site/332664bfdad2806b8045d09fc30c7880">观看 Demo</a> · <a href="#-产品截图">产品截图</a> · <a href="#-快速开始">快速开始</a>
 </p>
 
 ---
