@@ -1,9 +1,11 @@
 """
-SO-ARM101 action layer: currently a hard-coded mapping with an optional mock mode.
+Logical arm actions for the guide API (``ArmAction`` enum).
 
-When a physical arm is connected later:
-- connect to SO-ARM101 through a LeRobot Robot config and map ArmAction to joint poses or trajectories
-- or send commands through a separate arm_driver process over HTTP/WebSocket and call lerobot there
+- ``ARM_MOCK=true`` (default): ``execute_arm_action`` logs only; no hardware.
+- Route-linked playback of taught poses uses the separate **arm daemon** and
+  ``route_arm_direction`` + ``arm_daemon_client`` (not this module’s presets).
+
+Future: map ``ArmAction`` to joint targets or call ``arm_driver`` over IPC.
 """
 
 import logging

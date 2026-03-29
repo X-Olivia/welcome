@@ -6,8 +6,7 @@
 welcome/
 ├── backend/           # FastAPI：NLU(OpenAI)、导览内容、会话、二维码、机械臂 mock
 ├── frontend/          # Vite + React：大屏交互 + /m/:token 手机页
-├── arm_driver/        # SO101 串口测试脚本
-├── camera/            # 摄像头追踪 + SO101（Haar / YOLO-Pose，见 camera/README.md）
+├── arm_driver/        # SO101：录制/回放/守护进程；说明见 arm_driver/README.md（中英）
 └── README.md
 ```
 
@@ -60,6 +59,8 @@ npm run dev -- --host 0.0.0.0
 
 ## SO-ARM101 / LeRobot
 
-**只有 follower、没有 leader** 也能做本项目的指向演示：由程序直接下发关节目标（`send_action`）即可。Leader 主要用于官方文档里的遥操作、双机录制等流程；没有 leader 时不必接第二块板，可忽略相关说明。
+**答辩与作品说明（机械臂功能一览、文件分工、与后端如何联动）请阅读：[`arm_driver/README.md`](arm_driver/README.md)（中文 + English）。**
 
-关节角或示教名填在 `backend/app/services/arm.py` 的 `HARDCODED_PRESETS`；或通过 `arm_driver` 独立进程接收动作枚举再调用 `lerobot`。
+**只有 follower、没有 leader** 也能做指向演示：程序直接下发关节目标（`send_action`）。Leader 用于遥操作与示教录制；无 leader 时可只做 follower 回放。
+
+逻辑动作枚举与 mock：`backend/app/services/arm.py`。路线首向 → 八方位示教回放：`route_arm_direction.py`、`arm_daemon_client.py` 与 `arm_driver/arm_daemon.py`（详见上文 README）。

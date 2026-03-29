@@ -1,42 +1,96 @@
-# arm_driver
+# 机械臂模块说明 · Arm integration (SO-ARM101)
 
-## 仅 follower（无 leader）
+---
 
-本项目与 `test_so101_motion.py` **只连接 `so101_follower`**，不依赖 leader。没有 leader 时照样可以：给从臂上电、USB 接 follower 控制板、用标定好的 `robot-id` 跑测试或后续接入后端。
+## 中文
 
-官方文档里若出现 `so101_leader`、`lerobot-teleoperate` 双机，属于遥操作/数据采集场景；开放日「固定装置指方向」用代码发预设姿态即可，无需 leader。
+### 功能概览
 
-## 与后端的关系
+本目录实现 **SO-ARM101**（LeRobot `so101_leader` / `so101_follower`）与校园导览系统的衔接，主要包括：
 
-`backend/app/services/arm.py` 在 **`ARM_MOCK=true`（默认）** 时**不会**向真机发指令，只打日志。接入硬件后可将 `execute_arm_action` 改为调用本目录脚本或通过 HTTP 调独立进程。
+| 能力 | 说明 |
+|------|------|
+| **示教录制** | 在 **Leader** 臂上录制关节快照或短时轨迹，导出统一 JSON（`recordings/leader_poses_*.json`）。 |
+| **离线回放** | 在 **Follower** 臂上按 JSON 播放：先平滑回 `home`（默认取录制中的 `idle`），再执行每个动作并回到 `home`。 |
+| **连通性测试** | 小幅度转动 `shoulder_pan`，验证串口、标定与总线。 |
+| **HTTP 守护进程** | 本机监听端口，按 `action_key` 播放录制中的单段动作；供 FastAPI 在路线生成后异步调用。 |
+| **Web 后端联动** | 路线折线首段方向映射为八个罗盘向的 `action_key`，通过 `ARM_DAEMON_URL` 通知守护进程（可选）。 |
 
-## SO-ARM101 真机测试脚本
+### 文件一览
 
-```bash
-conda activate lerobot
-cd /path/to/welcome
-python arm_driver/test_so101_motion.py --port /dev/ttyACM0
-```
+| 文件 | 作用 |
+|------|------|
+| `record_leader_poses.py` | 连接 Leader，交互式录制多类动作到 JSON。 |
+| `replay_engine.py` | 回放核心：读 JSON、`step_toward_target` 平滑逼近、`replay_one_action` 执行 keyframe/trajectory。 |
+| `replay_leader_poses.py` | CLI：在 Follower 上顺序播放整个录制文件。 |
+| `arm_daemon.py` | 常驻进程：`GET /health`、`POST /v1/play`，队列串行播放，独占串口。 |
+| `test_so101_motion.py` | Follower 小幅动作自检。 |
+| `__init__.py` | 包标记，便于 `arm_driver.*` 导入。 |
 
-`--robot-id` 必须与本地标定文件名一致，例如：
+### 与仓库其余部分的关系
 
-`~/.cache/huggingface/lerobot/calibration/robots/so_follower/<id>.json`
+- **后端**（`backend/app/services/`）：`arm.py`（逻辑动作 + mock）、`route_arm_direction.py`（折线→八向 key）、`arm_daemon_client.py`（HTTP 通知守护进程）；`routes.py` 在 `/api/guide`、`/api/route*` 成功规划路线后可选触发守护进程。
+- **配置**：`backend/.env` 中 `ARM_DAEMON_URL`、`ARM_MAP_NORTH_OFFSET_DEG`、`ARM_MOCK` 等（详见 `backend/.env.example`）。
 
-本机若已有 `my_awesome_follower_arm.json`，则使用默认 `--robot-id my_awesome_follower_arm`（可 `ls` 该目录确认）。若你用别的名字跑过 `lerobot-calibrate`，把 `--robot-id` 改成对应名字即可。
+### 典型运行顺序（现场演示）
 
-若出现 **`Missing motor IDs` / `found motor list: {}`**：串口能打开，但 **Feetech 总线上没有扫到电机**。请检查 follower 是否上电、USB 是否接在 **从臂** 控制板、线序是否接好；多路 `ttyACM*` 时用 **`lerobot-find-port`** 确认端口或换试 `/dev/ttyACM1`；新电机需先运行 **`lerobot-setup-motors --robot.type=so101_follower --robot.port=...`**。
+1. （可选）`conda activate lerobot`，用 `record_leader_poses.py` 在 Leader 上录制并保存 JSON。  
+2. 将板子接到 **Follower**，完成 `lerobot-calibrate`（与 `--robot-id` 一致）。  
+3. 启动守护进程：`python arm_driver/arm_daemon.py`（可用 `ARM_DAEMON_DRY_RUN=1` 调试 HTTP）。  
+4. 启动后端并设置 `ARM_DAEMON_URL=http://127.0.0.1:8765`，前端生成路线后即可触发对应方向的示教动作。
 
-若出现 **`Permission denied: '/dev/ttyACM0'`**，说明当前用户对串口没有读写权限，任选其一：
+环境变量与 API 细节见各脚本顶部 **module docstring**。
 
-- **推荐（永久）**：`sudo usermod -aG dialout "$USER"`，然后**注销并重新登录**（或重启），再执行 `groups` 确认含有 `dialout`。
-- **临时**：`sudo chmod 666 /dev/ttyACM0`（拔插 USB 后可能需重来）。
+---
 
-仅检查能否导入 `lerobot`：
+## English
 
-```bash
-python arm_driver/test_so101_motion.py --dry-run
-```
+### Feature overview
 
-脚本会连接 `so101_follower`，读取当前关节角，令 **shoulder_pan** 转动约 12°，保持数秒后复原。请先完成官方 **`lerobot-setup-motors`** 与 **`lerobot-calibrate`**，且 `--robot-id` 与标定时一致。
+This package integrates the **SO-ARM101** arm (LeRobot `so101_leader` / `so101_follower`) with the campus guide stack:
 
-日后可将 `ArmAction` 映射为关节目标或示教轨迹，再用 `lerobot` 的 `send_action` 执行。
+| Capability | Description |
+|------------|-------------|
+| **Tele-op recording** | On the **Leader** arm, record joint keyframes or short trajectories into a single JSON file under `recordings/`. |
+| **Offline replay** | On the **Follower**, play that JSON: smooth approach to `home` (default: `idle` entry), run each action, return to `home`. |
+| **Smoke test** | Nudge `shoulder_pan` to verify USB bus, calibration, and torque. |
+| **HTTP daemon** | Local server: play one `action_key` at a time from the loaded recording; invoked by FastAPI after a route is planned. |
+| **Backend bridge** | Maps the first meaningful segment of the route polyline to an 8-way compass key (`point_north`, …) and `POST`s to the daemon when `ARM_DAEMON_URL` is set. |
+
+### File map
+
+| File | Role |
+|------|------|
+| `record_leader_poses.py` | Connect Leader; interactive menu to record named actions to JSON. |
+| `replay_engine.py` | Shared replay logic: load JSON, ramped `step_toward_target`, `replay_one_action` for `keyframe` / `trajectory` blocks. |
+| `replay_leader_poses.py` | CLI: play a full recording file on Follower in order. |
+| `arm_daemon.py` | Long-running process: `GET /health`, `POST /v1/play`, queued playback, single serial owner. |
+| `test_so101_motion.py` | Minimal Follower motion sanity check. |
+| `__init__.py` | Package marker for `arm_driver.*` imports. |
+
+### Relation to the rest of the repo
+
+- **Backend** (`backend/app/services/`): `arm.py` (logical `ArmAction` + mock), `route_arm_direction.py` (polyline → 8-way key), `arm_daemon_client.py` (non-blocking HTTP to daemon); `routes.py` optionally triggers the daemon after successful `/api/guide` and `/api/route*`.
+- **Configuration**: `ARM_DAEMON_URL`, `ARM_MAP_NORTH_OFFSET_DEG`, `ARM_MOCK`, etc. in `backend/.env` (see `backend/.env.example`).
+
+### Typical demo flow
+
+1. (Optional) Record on Leader with `record_leader_poses.py`.  
+2. Move the board to **Follower**; run `lerobot-calibrate` matching `--robot-id`.  
+3. Start `python arm_driver/arm_daemon.py` (use `ARM_DAEMON_DRY_RUN=1` to test HTTP only).  
+4. Run the API with `ARM_DAEMON_URL=http://127.0.0.1:8765`; planning a route from the UI queues the matching directional pose.
+
+Full env var and HTTP API lists are in each script’s **module docstring** (English in source).
+
+---
+
+## Dependencies
+
+- **Conda env** with LeRobot and Feetech stack (see project root `README.md`).  
+- **Linux**: serial permissions (`dialout` or `chmod` on `/dev/ttyACM*`).
+
+---
+
+## Code comments
+
+Source files under `arm_driver/` and the backend arm-related modules use **English** docstrings and comments for review and submission; interactive prompts in `record_leader_poses.py` may remain Chinese for operator convenience.

@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     public_base_url: str = "http://localhost:5173"
     arm_mock: bool = True
+    # e.g. http://127.0.0.1:8765 — after a route is built, POST 8-way action_key to arm_daemon
+    arm_daemon_url: str = ""
+    # Extra rotation (deg) for polyline→compass if map north ≠ screen-up convention
+    arm_map_north_offset_deg: float = 0.0
+    arm_daemon_timeout_sec: float = 3.0
 
 
 settings = Settings()

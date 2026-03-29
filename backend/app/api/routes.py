@@ -4,6 +4,7 @@ from app.config import settings
 from app.models.schemas import (
     GuideRequest,
     GuideResponse,
+    MapPoint,
     MultiRouteRequest,
     RoutePlanResponse,
     RouteRequest,
@@ -11,12 +12,28 @@ from app.models.schemas import (
     VoiceTranscriptResponse,
 )
 from app.services.arm import execute_arm_action
+from app.services.arm_daemon_client import schedule_arm_daemon_play
 from app.services.assemblyai import transcribe_audio_bytes
 from app.services.cartesia import synthesize_speech_bytes
 from app.services.decision import plan_multi_stop_route, plan_route_to_destination, run_guide_pipeline
+from app.services.route_arm_direction import polyline_to_action_key
 from app.services.session_store import get as session_get
 
 router = APIRouter()
+
+
+def _schedule_route_arm_daemon_for_polyline(polyline: list[MapPoint]) -> dict[str, object] | None:
+    """If ``ARM_DAEMON_URL`` is set and polyline is usable, queue one daemon playback (async)."""
+    url = (settings.arm_daemon_url or "").strip()
+    if not url:
+        return None
+    if len(polyline) < 2:
+        return None
+    key = polyline_to_action_key(polyline, north_offset_deg=settings.arm_map_north_offset_deg)
+    if not key:
+        return None
+    schedule_arm_daemon_play(url, key, timeout_sec=settings.arm_daemon_timeout_sec)
+    return {"action_key": key, "queued": True}
 
 
 @router.get("/session/{token}")
@@ -31,27 +48,32 @@ def get_session(token: str) -> dict:
 def post_guide(body: GuideRequest) -> GuideResponse:
     result = run_guide_pipeline(body.message)
     arm_result = execute_arm_action(result.arm_action)
-    if result.debug is not None:
-        result.debug["arm"] = arm_result
-    else:
-        result.debug = {"arm": arm_result}
-    return result
+    daemon_info = _schedule_route_arm_daemon_for_polyline(result.route_polyline)
+    dbg: dict[str, object] = dict(result.debug) if result.debug else {}
+    dbg["arm"] = arm_result
+    if daemon_info is not None:
+        dbg["arm_daemon_route"] = daemon_info
+    return result.model_copy(update={"debug": dbg})
 
 
 @router.post("/route", response_model=RoutePlanResponse)
 def post_route(body: RouteRequest) -> RoutePlanResponse:
     try:
-        return plan_route_to_destination(body.destination)
+        plan = plan_route_to_destination(body.destination)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    _schedule_route_arm_daemon_for_polyline(plan.path)
+    return plan
 
 
 @router.post("/route/multi", response_model=RoutePlanResponse)
 def post_multi_route(body: MultiRouteRequest) -> RoutePlanResponse:
     try:
-        return plan_multi_stop_route(body.waypoints, body.mode)
+        plan = plan_multi_stop_route(body.waypoints, body.mode)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    _schedule_route_arm_daemon_for_polyline(plan.path)
+    return plan
 
 
 @router.post("/voice/transcribe", response_model=VoiceTranscriptResponse)
@@ -106,4 +128,5 @@ def debug_config() -> dict[str, object]:
         "cartesia_base_url": settings.cartesia_base_url,
         "cartesia_language": settings.cartesia_language,
         "public_base_url": settings.public_base_url,
+        "arm_daemon_configured": bool((settings.arm_daemon_url or "").strip()),
     }
