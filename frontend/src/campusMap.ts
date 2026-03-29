@@ -23,6 +23,41 @@ export interface DisplayPoi {
 const pointData = rawPointData as RawPointData;
 const pointLookup = new Map(pointData.points.map((point) => [point.id, { x: point.x, y: point.y }]));
 
+function titleCaseWords(value: string): string {
+  return value
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b([a-z])/gi, (match) => match.toUpperCase());
+}
+
+function readablePointName(id: string): string {
+  return titleCaseWords(id.replace(/\(([^)]+)\)/g, "").replace(/\b([A-Z])\s+/g, "$1 ").trim());
+}
+
+function areaForPoint(id: string): string {
+  if (/gate/i.test(id)) return "Campus entrance";
+  if (/library/i.test(id)) return "Central academic core";
+  if (/canteen|hub|residence|villa|hotel|apartments|space/i.test(id)) return "Student life and living";
+  if (/sports|health|wellbeing/i.test(id)) return "Sports and wellbeing";
+  if (/museum|admission|recruitment/i.test(id)) return "Visitor information";
+  if (/garden/i.test(id)) return "Campus landscape";
+  return "Campus location";
+}
+
+function genericPoiForPoint(id: string): DisplayPoi {
+  const name = readablePointName(id);
+  return {
+    id,
+    name,
+    area: areaForPoint(id),
+    description: `${name} is available as a marked campus point on the guide map and can be included as a reference stop while visitors explore the site.`,
+    relation: "Tap the marker to inspect this campus location.",
+    blurb: `Marked campus point for ${name}.`,
+    pointId: id,
+  };
+}
+
 function point(id: string): Coord {
   const value = pointLookup.get(id);
   if (!value) throw new Error(`Unknown campus point: ${id}`);
@@ -39,8 +74,8 @@ export const mapSize = pointData.image_size;
 export const guideStation = {
   id: "guide-station",
   label: "AI Guide Station",
-  x: point("GATE 1").x,
-  y: point("GATE 1").y,
+  x: point("IEB (30)").x,
+  y: point("IEB (30)").y,
 };
 
 const displayPois: Record<string, DisplayPoi> = {
@@ -86,17 +121,29 @@ const displayPois: Record<string, DisplayPoi> = {
   },
 };
 
+const allCampusPois: DisplayPoi[] = pointData.points.map((raw) => {
+  const curated = Object.values(displayPois).find((poi) => poi.pointId === raw.id);
+  return curated ?? genericPoiForPoint(raw.id);
+});
+
 export function getPoiByPlaceId(placeId: string): DisplayPoi | null {
-  return displayPois[placeId] ?? null;
+  return displayPois[placeId] ?? (pointLookup.has(placeId) ? genericPoiForPoint(placeId) : null);
 }
 
 export function getFeaturedPois(): DisplayPoi[] {
   return Object.values(displayPois);
 }
 
+export function getAllCampusPois(): DisplayPoi[] {
+  return allCampusPois;
+}
+
 export function resolvePlacePosition(place: PlaceCard): Coord | null {
   if (typeof place.x === "number" && typeof place.y === "number") {
     return { x: place.x, y: place.y };
+  }
+  if (pointLookup.has(place.id)) {
+    return point(place.id);
   }
   const fallback = displayPois[place.id];
   if (!fallback) return null;

@@ -4,6 +4,7 @@ outputs/
 __pycache__/
 *.pyc
 .venv/
+.venv-img/
 venv/
 node_modules/
 dist/

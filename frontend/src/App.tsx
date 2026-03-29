@@ -1,13 +1,12 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { GuideMap } from "./GuideMap";
 import { type GuideResponse, postGuide } from "./api";
-import { getPoiByPlaceId, getRouteMetrics, polylineDistance } from "./campusMap";
+import { getAllCampusPois, getPoiByPlaceId, getRouteMetrics, polylineDistance } from "./campusMap";
 import { useVoiceGuide } from "./voice/useVoiceGuide";
 
 const starterPrompts = [
   "How do I get to the library?",
   "I want to explore AI and robotics.",
-  "Show my family the engineering area.",
   "I want to see student life and food spots.",
 ];
 
@@ -26,6 +25,44 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GuideResponse | null>(null);
   const [qrVisible, setQrVisible] = useState(false);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const titleFlankRef = useRef<HTMLDivElement>(null);
+  const [titleFlankScroll, setTitleFlankScroll] = useState(0);
+  const reduceFlankMotionRef = useRef(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    reduceFlankMotionRef.current = mq.matches;
+
+    const updateFlank = () => {
+      if (reduceFlankMotionRef.current) {
+        setTitleFlankScroll(0.35);
+        return;
+      }
+      const el = titleFlankRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      const mid = rect.top + rect.height * 0.42;
+      const t = (vh * 0.55 - mid) / (vh * 0.95);
+      setTitleFlankScroll(Math.min(1, Math.max(0, t)));
+    };
+
+    const onMq = () => {
+      reduceFlankMotionRef.current = mq.matches;
+      updateFlank();
+    };
+
+    mq.addEventListener("change", onMq);
+    updateFlank();
+    window.addEventListener("scroll", updateFlank, { passive: true });
+    window.addEventListener("resize", updateFlank);
+    return () => {
+      mq.removeEventListener("change", onMq);
+      window.removeEventListener("scroll", updateFlank);
+      window.removeEventListener("resize", updateFlank);
+    };
+  }, []);
 
   const routeDistance = useMemo(
     () => result?.route_distance_px ?? polylineDistance(result?.route_polyline ?? []),
@@ -40,6 +77,7 @@ export function App() {
     setLoading(true);
     setError(null);
     setQrVisible(false);
+    setSelectedPlaceId(null);
     try {
       const data = await postGuide(text);
       setResult(data);
@@ -77,11 +115,25 @@ export function App() {
   const showTransfer = Boolean(result?.mobile_url && stopCount > 0);
   const overviewText =
     result?.route_summary_zh?.trim() || result?.reply_zh?.trim() || "Tell the guide what you want to explore.";
-  const streamHeading = loading
-    ? "Understanding your route"
-    : result
-      ? "Your route, tailored for you"
-      : "A personal guide, ready when you are";
+  const mapPlaces = useMemo(() => {
+    const lookup = new Map<string, { id: string; name_zh: string; blurb: string }>();
+
+    getAllCampusPois().forEach((poi) => {
+      lookup.set(poi.id, {
+        id: poi.id,
+        name_zh: poi.name,
+        blurb: poi.blurb,
+      });
+    });
+
+    (result?.places ?? []).forEach((place) => {
+      lookup.set(place.id, place);
+    });
+
+    return Array.from(lookup.values());
+  }, [result]);
+  const selectedMapPlace = mapPlaces.find((place) => place.id === selectedPlaceId) ?? null;
+  const selectedMapMeta = selectedMapPlace ? getPoiByPlaceId(selectedMapPlace.id) : null;
   const routeTagline =
     result?.intent === "route"
       ? "A direct route shaped around one destination."
@@ -103,11 +155,15 @@ export function App() {
             {[0, 1].map((group) => (
               <div className="showcase-marquee__group" key={group} aria-hidden={group === 1}>
                 {marqueeItems.map((item, index) => (
-                  <div className="showcase-marquee__item" key={`${group}-${item}`}>
-                    {index === 0 && <img src="/Nottingham_logo.png" alt="" />}
-                    <span>{item}</span>
-                    <span className="showcase-marquee__sep">✦</span>
-                  </div>
+                  <Fragment key={`${group}-${index}`}>
+                    <div className="showcase-marquee__item">
+                      {index === 0 && <img src="/Nottingham_logo.png" alt="" />}
+                      <span>{item}</span>
+                    </div>
+                    <span className="showcase-marquee__sep" aria-hidden="true">
+                      ✦
+                    </span>
+                  </Fragment>
                 ))}
               </div>
             ))}
@@ -131,14 +187,38 @@ export function App() {
               alt="University of Nottingham Ningbo China"
             />
             <p className="showcase-eyebrow">UNNC Open Day</p>
-            <h1 className="showcase-title">
-              A campus visit,
-              <span> designed around you</span>
-            </h1>
+            <div className="showcase-title-flank" ref={titleFlankRef}>
+              <img
+                className="showcase-title-flank__art showcase-title-flank__art--left"
+                src="/left.png"
+                alt=""
+                width={793}
+                height={1182}
+                decoding="async"
+                style={{
+                  transform: `translateY(-50%) translateX(${-28 + titleFlankScroll * -32}px) rotate(${-7 + titleFlankScroll * 13}deg)`,
+                }}
+              />
+              <img
+                className="showcase-title-flank__art showcase-title-flank__art--right"
+                src="/right.png"
+                alt=""
+                width={840}
+                height={560}
+                decoding="async"
+                style={{
+                  transform: `translateY(-50%) translateX(${28 + titleFlankScroll * 32}px) rotate(${11 - titleFlankScroll * 13}deg)`,
+                }}
+              />
+              <h1 className="showcase-title">
+                <span className="showcase-title__line">A campus visit,</span>
+                <span className="showcase-title__line showcase-title__line--accent">
+                  designed around you ^ ^
+                </span>
+              </h1>
+            </div>
             <p className="showcase-copy">
-              Every visitor arrives with a different curiosity. Ask in text or by voice and the
-              guide will shape a live route, then hand it over to your phone when you are ready to
-              walk.
+              Ask by text or voice, get a live route, and carry it with you on your phone ^ ^!
             </p>
             <div className="showcase-pill-row">
               <span className="showcase-pill showcase-pill--pink">Personal route</span>
@@ -159,7 +239,7 @@ export function App() {
               <form className="showcase-composer" onSubmit={onSubmit}>
                 <p className="showcase-composer__hint">
                   Type a place, a theme, or the kind of visit you want. The same input area also
-                  works with voice, so the experience stays direct and calm.
+                  works with voice.
                 </p>
 
                 <div className="showcase-composer__field">
@@ -218,110 +298,91 @@ export function App() {
               </form>
             </div>
 
-            <div className="showcase-stream__section">
-              {loading && (
-                <div className="showcase-loading">
-                  <p className="showcase-section-label">Understanding your route</p>
-                  <div className="showcase-skeleton showcase-skeleton--wide" />
-                  <div className="showcase-skeleton showcase-skeleton--mid" />
-                  <div className="showcase-skeleton showcase-skeleton--panel" />
-                </div>
-              )}
-
-              {!loading && error && (
-                <div className="showcase-result-card showcase-result-card--error" role="alert">
-                  <p className="showcase-section-label">Guide response</p>
-                  <h3>Something interrupted the route</h3>
-                  <p>{error}</p>
-                </div>
-              )}
-
-              {!loading && !result && !error && (
-                <div className="showcase-result-card">
-                  <div className="showcase-route-head">
-                    <div>
-                      <p className="showcase-section-label">Your route will appear here</p>
-                      <h3>{streamHeading}</h3>
-                    </div>
-                    <span className="showcase-intent-pill">Ready</span>
+            {(loading || error || result) && (
+              <div className="showcase-stream__section">
+                {loading && (
+                  <div className="showcase-loading">
+                    <p className="showcase-section-label">Understanding your route</p>
+                    <div className="showcase-skeleton showcase-skeleton--wide" />
+                    <div className="showcase-skeleton showcase-skeleton--mid" />
+                    <div className="showcase-skeleton showcase-skeleton--panel" />
                   </div>
-                  <p className="showcase-overview">
-                    Start with one thought and the assistant will turn it into a route with pace,
-                    stops, and map context that feels personal instead of generic.
-                  </p>
-                  <div className="showcase-note-row">
-                    <span>Text or voice</span>
-                    <span>Personalized sequence</span>
-                    <span>Mobile continuation</span>
+                )}
+
+                {!loading && error && (
+                  <div className="showcase-result-card showcase-result-card--error" role="alert">
+                    <p className="showcase-section-label">Guide response</p>
+                    <h3>Something interrupted the route</h3>
+                    <p>{error}</p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {!loading && result && (
-                <div className="showcase-result-card">
-                  <div className="showcase-route-head">
-                    <div>
-                      <p className="showcase-section-label">Your open day route</p>
-                      <h3>{routeTagline}</h3>
-                    </div>
-                    <span className="showcase-intent-pill">{intentLabel(result.intent)}</span>
-                  </div>
-
-                  <p className="showcase-overview">{overviewText}</p>
-
-                  {stopCount > 0 ? (
-                    <>
-                      <div className="showcase-metrics">
-                        <div className="showcase-metric">
-                          <span>Estimated walk</span>
-                          <strong>{metrics.minutes} min</strong>
-                        </div>
-                        <div className="showcase-metric">
-                          <span>Recommended stops</span>
-                          <strong>{stopCount}</strong>
-                        </div>
-                        <div className="showcase-metric">
-                          <span>Best for</span>
-                          <strong>{audienceLabel(result.intent)}</strong>
-                        </div>
+                {!loading && result && (
+                  <div className="showcase-result-card">
+                    <div className="showcase-route-head">
+                      <div>
+                        <p className="showcase-section-label">Your open day route</p>
+                        <h3>{routeTagline}</h3>
                       </div>
-
-                      <div className="showcase-stop-list">
-                        {result.places.map((stop, index) => {
-                          const meta = getPoiByPlaceId(stop.id);
-                          return (
-                            <article className="showcase-stop" key={stop.id}>
-                              <span className="showcase-stop__idx">{index + 1}</span>
-                              <div className="showcase-stop__body">
-                                <h4>{stop.name_zh}</h4>
-                                <p>{stop.blurb}</p>
-                                {meta && <span className="showcase-stop__meta">{meta.area}</span>}
-                              </div>
-                            </article>
-                          );
-                        })}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="showcase-note-row">
-                      {starterPrompts.slice(0, 3).map((prompt) => (
-                        <button
-                          key={prompt}
-                          className="showcase-chip"
-                          type="button"
-                          onClick={() => {
-                            setInput(prompt);
-                            void runQuery(prompt).catch(() => undefined);
-                          }}
-                        >
-                          {prompt}
-                        </button>
-                      ))}
+                      <span className="showcase-intent-pill">{intentLabel(result.intent)}</span>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+
+                    <p className="showcase-overview">{overviewText}</p>
+
+                    {stopCount > 0 ? (
+                      <>
+                        <div className="showcase-metrics">
+                          <div className="showcase-metric">
+                            <span>Estimated walk</span>
+                            <strong>{metrics.minutes} min</strong>
+                          </div>
+                          <div className="showcase-metric">
+                            <span>Recommended stops</span>
+                            <strong>{stopCount}</strong>
+                          </div>
+                          <div className="showcase-metric">
+                            <span>Best for</span>
+                            <strong>{audienceLabel(result.intent)}</strong>
+                          </div>
+                        </div>
+
+                        <div className="showcase-stop-list">
+                          {result.places.map((stop, index) => {
+                            const meta = getPoiByPlaceId(stop.id);
+                            return (
+                              <article className="showcase-stop" key={stop.id}>
+                                <span className="showcase-stop__idx">{index + 1}</span>
+                                <div className="showcase-stop__body">
+                                  <h4>{stop.name_zh}</h4>
+                                  <p>{stop.blurb}</p>
+                                  {meta && <span className="showcase-stop__meta">{meta.area}</span>}
+                                </div>
+                              </article>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="showcase-note-row">
+                        {starterPrompts.slice(0, 3).map((prompt) => (
+                          <button
+                            key={prompt}
+                            className="showcase-chip"
+                            type="button"
+                            onClick={() => {
+                              setInput(prompt);
+                              void runQuery(prompt).catch(() => undefined);
+                            }}
+                          >
+                            {prompt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {showTransfer && (
               <div className={`showcase-handoff ${qrVisible ? "showcase-handoff--visible" : ""}`}>
@@ -364,21 +425,68 @@ export function App() {
             )}
           </section>
 
+          <div className="showcase-between-hint" aria-hidden="true">
+            <div className="showcase-between-hint__pill">
+              <span className="showcase-between-hint__spark">✦</span>
+              <svg
+                className="showcase-between-hint__chevrons"
+                viewBox="0 0 56 48"
+                width={56}
+                height={48}
+                role="presentation"
+              >
+                <path
+                  className="showcase-between-hint__stroke showcase-between-hint__stroke--a"
+                  d="M14 14 L28 28 L42 14"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={5}
+                />
+                <path
+                  className="showcase-between-hint__stroke showcase-between-hint__stroke--b"
+                  d="M14 26 L28 40 L42 26"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={5}
+                />
+              </svg>
+            </div>
+          </div>
+
           <section className="showcase-mapcard">
             <div className="showcase-mapcard__head">
               <h2>Live route map</h2>
               <p>
                 {stopCount > 0
                   ? `Your route begins at the guide station and first points you toward ${result?.places[0].name_zh}.`
-                  : "The campus map stays visible below, so the route can arrive the moment the guide understands your request."}
+                  : "The campus map stays ready below and updates the moment your route is generated."}
               </p>
             </div>
 
-            <GuideMap
-              places={result?.places ?? []}
-              routePolyline={result?.route_polyline ?? []}
-              mode={loading ? "loading" : result ? "result" : "initial"}
-            />
+            <div className="showcase-mapcard__stage">
+              <GuideMap
+                places={result?.places ?? []}
+                routePolyline={result?.route_polyline ?? []}
+                mode={loading ? "loading" : result ? "result" : "initial"}
+                activePlaceId={selectedPlaceId}
+                activePlaceCard={
+                  selectedMapPlace
+                    ? {
+                        title: selectedMapMeta?.name ?? selectedMapPlace.name_zh,
+                        description: selectedMapMeta?.description ?? selectedMapPlace.blurb,
+                        tag: selectedMapMeta?.area ?? "Campus stop",
+                        relation: selectedMapMeta?.relation,
+                      }
+                    : null
+                }
+                onActivePlaceClose={() => setSelectedPlaceId(null)}
+                onMarkerSelect={(placeId) =>
+                  setSelectedPlaceId((current) => (current === placeId ? null : placeId))
+                }
+              />
+            </div>
 
             <div className="showcase-mapcard__foot">
               {topStop

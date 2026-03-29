@@ -1,8 +1,8 @@
 import type { MapPoint, PlaceCard } from "./api";
 import { LocationMarker } from "./components/LocationMarker";
 import {
+  getAllCampusPois,
   getFeaturedPois,
-  getPoiByPlaceId,
   guideStation,
   mapAsset,
   mapSize,
@@ -14,6 +14,13 @@ type GuideMapProps = {
   routePolyline?: MapPoint[];
   mode: "initial" | "loading" | "result" | "mobile";
   activePlaceId?: string | null;
+  activePlaceCard?: {
+    title: string;
+    description: string;
+    tag: string;
+    relation?: string | null;
+  } | null;
+  onActivePlaceClose?: () => void;
   onMarkerSelect?: (placeId: string) => void;
   hideChrome?: boolean;
   zoom?: number;
@@ -38,6 +45,8 @@ export function GuideMap({
   routePolyline = [],
   mode,
   activePlaceId,
+  activePlaceCard,
+  onActivePlaceClose,
   onMarkerSelect,
   hideChrome = false,
   zoom = 1,
@@ -46,29 +55,44 @@ export function GuideMap({
   className,
   onViewportPan,
 }: GuideMapProps) {
-  const featuredPois = getFeaturedPois();
-  const visibleStops: VisibleStop[] =
-    places.length > 0
-      ? places
-          .map((place) => {
-            const position = resolvePlacePosition(place);
-            if (!position) return null;
-            return { ...place, x: position.x, y: position.y };
-          })
-          .filter((place): place is VisibleStop => place !== null)
-      : featuredPois
-          .map((poi) => {
-            const position = resolvePlacePosition({ id: poi.id, name_zh: poi.name, blurb: poi.blurb });
-            if (!position) return null;
-            return {
-              id: poi.id,
-              name_zh: poi.name,
-              blurb: poi.blurb,
-              x: position.x,
-              y: position.y,
-            } satisfies VisibleStop;
-          })
-          .filter((place): place is VisibleStop => place !== null);
+  const featuredPois = getAllCampusPois();
+  const curatedPoiIds = new Set(getFeaturedPois().map((poi) => poi.id));
+  const stopLookup = new Map<string, VisibleStop>();
+
+  function offsetMarkerPosition(position: { x: number; y: number }) {
+    if (position.x === guideStation.x && position.y === guideStation.y) {
+      return { x: position.x + 24, y: position.y + 22 };
+    }
+    return position;
+  }
+
+  featuredPois.forEach((poi) => {
+    const position = resolvePlacePosition({ id: poi.id, name_zh: poi.name, blurb: poi.blurb });
+    if (!position) return;
+    const shifted = offsetMarkerPosition(position);
+    stopLookup.set(poi.id, {
+      id: poi.id,
+      name_zh: poi.name,
+      blurb: poi.blurb,
+      x: shifted.x,
+      y: shifted.y,
+    });
+  });
+
+  places.forEach((place) => {
+    const position = resolvePlacePosition(place);
+    if (!position) return;
+    const shifted = offsetMarkerPosition(position);
+    const existingAtPosition = Array.from(stopLookup.entries()).find(
+      ([, stop]) => stop.x === shifted.x && stop.y === shifted.y,
+    );
+    if (existingAtPosition) {
+      stopLookup.delete(existingAtPosition[0]);
+    }
+    stopLookup.set(place.id, { ...place, x: shifted.x, y: shifted.y });
+  });
+
+  const visibleStops = Array.from(stopLookup.values());
 
   const polyline = routePolyline.map((point) => `${point.x},${point.y}`).join(" ");
   const loadingPolyline = loadingPreview.map((point) => `${point.x},${point.y}`).join(" ");
@@ -79,6 +103,16 @@ export function GuideMap({
   };
   const translateX = (0.5 - effectiveCenter.x / mapSize.width) * 100 * safeScale;
   const translateY = (0.5 - effectiveCenter.y / mapSize.height) * 100 * safeScale;
+  const activeStop = activePlaceId ? visibleStops.find((stop) => stop.id === activePlaceId) ?? null : null;
+  const anchorX = activeStop ? activeStop.x / mapSize.width : 0;
+  const anchorY = activeStop ? activeStop.y / mapSize.height : 0;
+  const popoverHorizontalClass = anchorX > 0.64 ? "guide-map__popover--west" : "guide-map__popover--east";
+  const popoverVerticalClass =
+    anchorY < 0.24
+      ? "guide-map__popover--below"
+      : anchorY > 0.74
+        ? "guide-map__popover--above"
+        : "guide-map__popover--center";
 
   return (
     <div className={`guide-map ${hideChrome ? "guide-map--minimal" : ""} ${className ?? ""}`.trim()}>
@@ -86,7 +120,7 @@ export function GuideMap({
         className="guide-map__canvas"
         onPointerDown={(event) => {
           const source = event.target as Element | null;
-          if (source?.closest(".guide-map__marker")) {
+          if (source?.closest(".guide-map__marker, .guide-map__popover")) {
             return;
           }
 
@@ -155,6 +189,13 @@ export function GuideMap({
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+              <filter id="marker-glow">
+                <feGaussianBlur stdDeviation="5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
 
             {mode === "loading" && loadingPolyline && (
@@ -203,20 +244,12 @@ export function GuideMap({
 
             {userLocation && <LocationMarker point={userLocation} />}
 
-            <g>
-              <circle cx={guideStation.x} cy={guideStation.y} r="26" fill="rgba(124, 206, 214, 0.22)" />
-              <circle cx={guideStation.x} cy={guideStation.y} r="14" fill="#7cced6" stroke="#ffffff" strokeWidth="6" />
-              <text x={guideStation.x + 34} y={guideStation.y - 12} className="guide-map__station-label">
-                AI Guide Station
-              </text>
-            </g>
-
-            {visibleStops.map((stop, index) => {
+            {visibleStops.map((stop) => {
               const isActive = activePlaceId === stop.id;
-              const meta = getPoiByPlaceId(stop.id);
+              const isCore = isActive || curatedPoiIds.has(stop.id) || places.some((place) => place.id === stop.id);
               return (
               <g
-                className="guide-map__marker"
+                className={`guide-map__marker ${isCore ? "" : "guide-map__marker--subtle"}`.trim()}
                 key={stop.id}
                 onPointerUp={(event) => {
                   event.stopPropagation();
@@ -230,35 +263,61 @@ export function GuideMap({
                   <circle
                     cx={stop.x}
                     cy={stop.y}
-                    r={isActive ? 34 : 28}
-                    fill={isActive ? "rgba(31, 103, 210, 0.28)" : "rgba(15, 61, 145, 0.14)"}
+                    r={isActive ? 18 : 13}
+                    fill={isActive ? "rgba(86, 146, 255, 0.24)" : "rgba(86, 146, 255, 0.18)"}
+                    filter="url(#marker-glow)"
                   />
                   <circle
                     cx={stop.x}
                     cy={stop.y}
-                    r={isActive ? 22 : 18}
+                    r={isActive ? 11 : 7}
                     fill={isActive ? "#1f67d2" : "#0f3d91"}
                     stroke="#ffffff"
-                    strokeWidth="6"
+                    strokeWidth={isActive ? 5 : 4}
                   />
-                  <text x={stop.x} y={stop.y + 1} className="guide-map__marker-label">
-                    {index + 1}
-                  </text>
-                  {(mode !== "mobile" || isActive) && meta && (
-                    <text x={stop.x + 36} y={stop.y - 10} className="guide-map__marker-name">
-                      {meta.name}
-                    </text>
-                  )}
                 </g>
               );
             })}
+
+            <LocationMarker point={guideStation} variant="guide" />
           </svg>
+
+          {activeStop && activePlaceCard && mode !== "mobile" && (
+            <div
+              className={`guide-map__popover ${popoverHorizontalClass} ${popoverVerticalClass}`}
+              style={{
+                left: `${anchorX * 100}%`,
+                top: `${anchorY * 100}%`,
+              }}
+            >
+              <div className="guide-map__popover-header">
+                <div>
+                  <p className="guide-map__popover-tag">{activePlaceCard.tag}</p>
+                  <h4>{activePlaceCard.title}</h4>
+                </div>
+
+                <button
+                  className="guide-map__popover-close"
+                  type="button"
+                  onClick={onActivePlaceClose}
+                  aria-label="Close place introduction"
+                >
+                  <span aria-hidden="true">✦</span>
+                </button>
+              </div>
+
+              <p className="guide-map__popover-description">{activePlaceCard.description}</p>
+              {activePlaceCard.relation && (
+                <span className="guide-map__popover-pill">{activePlaceCard.relation}</span>
+              )}
+            </div>
+          )}
         </div>
 
         {!hideChrome && (
           <div className="guide-map__hint">
             {routePolyline.length > 0
-              ? "The highlighted line shows the suggested walk. Tap a stop on mobile to read more."
+              ? "The highlighted line shows the suggested walk. Tap a stop to read more."
               : "Key places stay visible here before a route is generated, so visitors can see the campus structure first."}
           </div>
         )}

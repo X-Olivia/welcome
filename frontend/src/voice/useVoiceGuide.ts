@@ -19,7 +19,7 @@ interface UseVoiceGuideOptions {
 
 export function useVoiceGuide(options: UseVoiceGuideOptions) {
   const [phase, setPhase] = useState<VoicePhase>("idle");
-  const [statusText, setStatusText] = useState("Tap the voice button and I will greet you first.");
+  const [statusText, setStatusText] = useState("");
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorText, setErrorText] = useState<string | null>(null);
 
